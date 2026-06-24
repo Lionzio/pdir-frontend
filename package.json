@@ -1,4 +1,12 @@
 {
+  "name": "pdir-frontend",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "prepare": "husky",
+    "lint": "eslint \"src/**/*.{ts,html}\"",
+    "format": "prettier --write \"src/**/*.{ts,html,scss}\""
+  },
   "dependencies": {
     "@angular/cdk": "^22.0.2",
     "@angular/material": "^22.0.2",
@@ -7,6 +15,23 @@
   },
   "devDependencies": {
     "@types/echarts": "^4.9.22",
-    "playwright": "^1.61.1"
+    "angular-eslint": "^22.0.0",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "playwright": "^1.61.1",
+    "prettier": "^3.8.4",
+    "typescript-eslint": "^8.62.0"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,html}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "src/**/*.scss": [
+      "prettier --write"
+    ]
   }
 }
