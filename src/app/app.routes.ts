@@ -9,9 +9,14 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
+    path: 'admin/sync',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/admin/sync-panel/sync-panel.component').then((m) => m.SyncPanelComponent),
+  },
+  {
     path: '',
     canActivate: [authGuard],
-    // Componente placeholder provisório protegido
     loadComponent: () => import('./app.component').then((m) => m.AppComponent),
   },
   {
