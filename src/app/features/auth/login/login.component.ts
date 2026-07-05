@@ -119,13 +119,15 @@ interface RegisterResponse {
                   class="submit-btn"
                   [disabled]="isLoading()"
                 >
-                  @if (isLoading()) {
-                    <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
-                    <span>Autenticando...</span>
-                  } @else {
-                    <mat-icon>login</mat-icon>
-                    <span>Entrar no Sistema</span>
-                  }
+                  <ng-container>
+                    @if (isLoading()) {
+                      <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+                      <span>Autenticando...</span>
+                    } @else {
+                      <mat-icon>login</mat-icon>
+                      <span>Entrar no Sistema</span>
+                    }
+                  </ng-container>
                 </button>
               </form>
             </div>
@@ -216,13 +218,15 @@ interface RegisterResponse {
                   class="submit-btn register-btn"
                   [disabled]="isRegistering()"
                 >
-                  @if (isRegistering()) {
-                    <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
-                    <span>Enviando solicitação...</span>
-                  } @else {
-                    <mat-icon>how_to_reg</mat-icon>
-                    <span>Solicitar Cadastro</span>
-                  }
+                  <ng-container>
+                    @if (isRegistering()) {
+                      <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+                      <span>Enviando solicitação...</span>
+                    } @else {
+                      <mat-icon>how_to_reg</mat-icon>
+                      <span>Solicitar Cadastro</span>
+                    }
+                  </ng-container>
                 </button>
               </form>
 
@@ -476,7 +480,7 @@ export class LoginComponent {
             permissions: payload.permissions ?? [],
           });
 
-          this.router.navigate(['/admin/sync']);
+          this.router.navigate(['/admin/rooms']);
         },
         error: (err: HttpErrorResponse) => {
           this.isLoading.set(false);

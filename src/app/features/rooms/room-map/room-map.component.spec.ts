@@ -1,0 +1,106 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RoomMapComponent } from './room-map.component';
+import { RoomsService } from '../services/rooms.service';
+import { MatDialog } from '@angular/material/dialog';
+import { signal } from '@angular/core';
+import { Room } from '../models/room.model';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+
+describe('RoomMapComponent', () => {
+  let component: RoomMapComponent;
+  let fixture: ComponentFixture<RoomMapComponent>;
+  let mockRoomsService: jasmine.SpyObj<RoomsService>;
+  let mockDialog: jasmine.SpyObj<MatDialog>;
+
+  const mockRooms: Room[] = [
+    {
+      id: 1,
+      number: '101',
+      floor: 1,
+      status: 'AVAILABLE',
+      capacity: 2,
+      category: { id: 1, name: 'Standard' },
+    },
+    { id: 2, number: '102', floor: 1, status: 'OCCUPIED', capacity: 3 },
+    { id: 3, number: '201', floor: 2, status: 'CLEANING', capacity: 1 },
+    { id: 4, number: '202', floor: 2, status: 'MAINTENANCE', capacity: 4 },
+  ];
+
+  beforeEach(async () => {
+    mockRoomsService = jasmine.createSpyObj('RoomsService', [
+      'loadRooms',
+      'connectToStream',
+      'disconnect',
+    ]);
+
+    // Setup signals for mock service
+    Object.defineProperty(mockRoomsService, 'rooms', { get: () => signal(mockRooms) });
+    Object.defineProperty(mockRoomsService, 'loading', { get: () => signal(false) });
+    Object.defineProperty(mockRoomsService, 'connected', { get: () => signal(true) });
+    Object.defineProperty(mockRoomsService, 'error', { get: () => signal(null) });
+
+    mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
+
+    await TestBed.configureTestingModule({
+      imports: [RoomMapComponent, NoopAnimationsModule],
+      providers: [
+        { provide: RoomsService, useValue: mockRoomsService },
+        { provide: MatDialog, useValue: mockDialog },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(RoomMapComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should group rooms by floor correctly when ALL filter is active', () => {
+    const terreoRooms = component.terreo();
+    const primeiroAndarRooms = component.primeiroAndar();
+    const anexosRooms = component.anexos();
+
+    expect(terreoRooms.length).toBe(2);
+    expect(primeiroAndarRooms.length).toBe(2);
+    expect(anexosRooms.length).toBe(0);
+  });
+
+  it('should filter rooms by status', () => {
+    component.statusFilter.set('OCCUPIED');
+    fixture.detectChanges();
+
+    const terreoRooms = component.terreo();
+    const primeiroAndarRooms = component.primeiroAndar();
+
+    expect(terreoRooms.length).toBe(1); // Only floor 1 has an occupied room
+    expect(terreoRooms[0].number).toBe('102');
+    expect(primeiroAndarRooms.length).toBe(0);
+  });
+
+  it('should open status action dialog with correct data on room click', () => {
+    component.openStatusActionDialog(mockRooms[0]);
+    expect(mockDialog.open).toHaveBeenCalled();
+    const args = mockDialog.open.calls.mostRecent().args;
+    expect(args[1]?.data).toEqual({ roomId: mockRooms[0].id });
+  });
+
+  it('should open edit metadata dialog with correct data', () => {
+    component.openEditMetadataDialog(mockRooms[0]);
+    expect(mockDialog.open).toHaveBeenCalled();
+    const args = mockDialog.open.calls.mostRecent().args;
+    expect(args[1]?.data).toEqual({ room: mockRooms[0] });
+  });
+
+  it('should connect to SSE and load rooms on init', () => {
+    expect(mockRoomsService.loadRooms).toHaveBeenCalled();
+    expect(mockRoomsService.connectToStream).toHaveBeenCalled();
+  });
+
+  it('should disconnect on destroy', () => {
+    component.ngOnDestroy();
+    expect(mockRoomsService.disconnect).toHaveBeenCalled();
+  });
+});
