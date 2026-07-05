@@ -8,6 +8,12 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
+    path: 'admin/rooms',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/rooms/room-map/room-map.component').then((m) => m.RoomMapComponent),
+  },
+  {
     path: 'admin/sync',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -16,10 +22,10 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'admin/sync',
+    redirectTo: 'admin/rooms',
   },
   {
     path: '**',
-    redirectTo: 'admin/sync',
+    redirectTo: 'admin/rooms',
   },
 ];
