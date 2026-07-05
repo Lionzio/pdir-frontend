@@ -1,4 +1,19 @@
 /* Estilos globais da PDIR */
+:root {
+  /* Sol Renascente Design System - Status Colors */
+  --color-available: #15803d;
+  --color-occupied: #1e3a8a;
+  --color-cleaning: #d97706;
+  --color-maintenance: #92400e;
+  --color-out-of-service: #b91c1c;
+
+  --color-available-bg: #f0fdf4;
+  --color-occupied-bg: #eff6ff;
+  --color-cleaning-bg: #fffbeb;
+  --color-maintenance-bg: #fef3c7;
+  --color-out-of-service-bg: #fef2f2;
+}
+
 body {
   margin: 0;
   font-family: Roboto, 'Helvetica Neue', sans-serif;
