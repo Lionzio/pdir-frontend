@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -16,11 +15,11 @@ export const routes: Routes = [
   },
   {
     path: '',
-    canActivate: [authGuard],
-    loadComponent: () => import('./app.component').then((m) => m.AppComponent),
+    pathMatch: 'full',
+    redirectTo: 'admin/sync',
   },
   {
     path: '**',
-    redirectTo: '',
+    redirectTo: 'admin/sync',
   },
 ];
