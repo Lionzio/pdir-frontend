@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, SecurityContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ChatMessage } from '../services/copilot.service';
+import { ChatMessage } from '../../services/copilot.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';

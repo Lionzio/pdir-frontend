@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../environments/environment';
+
 
 export interface ChatMessage {
   id: string;
@@ -41,7 +41,7 @@ export class CopilotService {
 
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`${environment.apiUrl}/intelligence/chat`, {
+      const response = await fetch('/api/v1/intelligence/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
