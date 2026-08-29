@@ -7,7 +7,7 @@ describe('AuthStorageService', () => {
 
   const mockSession: StoredSession = {
     token: 'fake-jwt-token',
-    payload: { sub: 'test@test.com', role: 'admin', permissions: ['all'] },
+    payload: { sub: 'test@test.com', user_id: 1, role: 'admin', permissions: ['all'] },
   };
 
   beforeEach(() => {
