@@ -1,6 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-
+import { AuthStorageService } from '../../../core/services/auth-storage.service';
 
 export interface ChatMessage {
   id: string;
@@ -18,6 +18,7 @@ export class CopilotService {
   public isTyping = signal<boolean>(false);
   public isVisible = signal<boolean>(false);
   private sessionId = crypto.randomUUID();
+  private authStorage = inject(AuthStorageService);
 
   constructor(private http: HttpClient) {}
 
@@ -40,7 +41,8 @@ export class CopilotService {
     this.isTyping.set(true);
 
     try {
-      const token = localStorage.getItem('access_token');
+      const session = this.authStorage.getSession();
+      const token = session?.token || '';
       const response = await fetch('/api/v1/intelligence/chat', {
         method: 'POST',
         headers: {

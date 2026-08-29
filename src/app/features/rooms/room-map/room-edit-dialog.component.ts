@@ -1,7 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -115,26 +115,18 @@ export interface RoomEditDialogData {
     `,
   ],
 })
-export class RoomEditDialogComponent {
+export class RoomEditDialogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<RoomEditDialogComponent>);
   private data = inject<RoomEditDialogData>(MAT_DIALOG_DATA);
   private roomsService = inject(RoomsService);
   private snackBar = inject(MatSnackBar);
+  private http = inject(HttpClient);
 
   isSaving = signal(false);
   isEditMode = !!this.data?.room;
 
-  // Mocking categories for the frontend to present options.
-  // Ideally this would come from a CategoryService.
-  availableCategories = [
-    { id: 1, name: 'Standard' },
-    { id: 2, name: 'Luxo' },
-    { id: 3, name: 'Suíte Presidencial' },
-    { id: 4, name: 'STANDARD' },
-    { id: 5, name: 'LUXO_LIST' },
-    { id: 6, name: 'PATCH_CAT' },
-  ];
+  availableCategories: any[] = [];
 
   form: FormGroup = this.fb.group({
     number: [this.data?.room?.number || '', Validators.required],
@@ -142,6 +134,17 @@ export class RoomEditDialogComponent {
     category_id: [this.data?.room?.category?.id || null, Validators.required],
     capacity: [this.data?.room?.capacity ?? 1, [Validators.required, Validators.min(1)]],
   });
+
+  ngOnInit(): void {
+    this.http.get<any[]>('/api/v1/rooms/categories').subscribe({
+      next: (cats) => {
+        this.availableCategories = cats;
+      },
+      error: () => {
+        this.snackBar.open('Falha ao carregar categorias', 'Fechar', { duration: 3000 });
+      }
+    });
+  }
 
   save(): void {
     if (this.form.invalid) return;
