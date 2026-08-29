@@ -45,19 +45,31 @@ export const authInterceptor: HttpInterceptorFn = (
             .pipe(
               switchMap((res) => {
                 isRefreshing = false;
-                // Aqui faríamos o decode real do payload JWT. Mockando estrutura para sincronia:
-                authService.updateSession(res.access_token, {
-                  sub: 'admin@pdir.com',
-                  role: 'Dono',
-                  permissions: ['all'],
-                });
-                refreshTokenSubject.next(res.access_token);
 
-                return next(
-                  req.clone({
-                    setHeaders: { Authorization: `Bearer ${res.access_token}` },
-                  }),
-                );
+                const decoded = authService.decodeTokenPayload(res.access_token);
+
+                // Valida os claims mínimos necessários (TSK-003)
+                if (decoded && decoded['sub'] && decoded['user_id'] && decoded['role']) {
+                  authService.updateSession(res.access_token, {
+                    sub: decoded['sub'] as string,
+                    user_id: decoded['user_id'] as number,
+                    role: decoded['role'] as string,
+                    permissions: (decoded['permissions'] as string[]) || [],
+                  });
+                  refreshTokenSubject.next(res.access_token);
+
+                  return next(
+                    req.clone({
+                      setHeaders: { Authorization: `Bearer ${res.access_token}` },
+                    }),
+                  );
+                } else {
+                  // Se o token estiver malformado ou sem claims obrigatórios, não reconstrói sessão vazia/mockada
+                  authService.clearSession();
+                  return throwError(
+                    () => new Error('Refresh token não contém claims obrigatórios'),
+                  );
+                }
               }),
               catchError((refreshErr) => {
                 isRefreshing = false;

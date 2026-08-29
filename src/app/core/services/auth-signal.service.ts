@@ -5,6 +5,7 @@ import { AuthStorageService } from './auth-storage.service';
 export interface AuthState {
   accessToken: string | null;
   email: string | null;
+  userId: number | null;
   role: string | null;
   permissions: string[];
 }
@@ -20,13 +21,16 @@ export class AuthSignalService {
   private state = signal<AuthState>({
     accessToken: null,
     email: null,
+    userId: null,
     role: null,
     permissions: [],
   });
 
   // Seletores públicos imutáveis
   readonly accessToken = computed(() => this.state().accessToken);
+  readonly email = computed(() => this.state().email);
   readonly isAuthenticated = computed(() => !!this.state().accessToken);
+  readonly userId = computed(() => this.state().userId);
   readonly role = computed(() => this.state().role);
   readonly permissions = computed(() => this.state().permissions);
 
@@ -42,6 +46,7 @@ export class AuthSignalService {
         this.state.set({
           accessToken: session.token,
           email: session.payload.sub,
+          userId: session.payload.user_id,
           role: session.payload.role,
           permissions: session.payload.permissions,
         });
@@ -55,11 +60,12 @@ export class AuthSignalService {
 
   updateSession(
     token: string,
-    payload: { sub: string; role: string; permissions: string[] },
+    payload: { sub: string; user_id: number; role: string; permissions: string[] },
   ): void {
     this.state.set({
       accessToken: token,
       email: payload.sub,
+      userId: payload.user_id,
       role: payload.role,
       permissions: payload.permissions,
     });
@@ -71,6 +77,7 @@ export class AuthSignalService {
     this.state.set({
       accessToken: null,
       email: null,
+      userId: null,
       role: null,
       permissions: [],
     });
@@ -82,10 +89,30 @@ export class AuthSignalService {
     return userPerms.includes('all') || userPerms.includes(permissionCode);
   }
 
-  private isTokenValid(token: string): boolean {
+  /**
+   * Verifica se o role atual do usuário está na lista de roles permitidos.
+   *
+   * Convenção especial: se `allowedRoles` contiver `'all'`, qualquer usuário
+   * autenticado com um role definido é considerado autorizado.
+   *
+   * Retorna `false` se o usuário não estiver autenticado ou não possuir role.
+   */
+  hasRole(allowedRoles: string[]): boolean {
+    const currentRole = this.state().role;
+    if (!currentRole) return false;
+    if (allowedRoles.includes('all')) return true;
+    return allowedRoles.includes(currentRole);
+  }
+
+  /**
+   * Decodifica o payload do JWT retornado pelo backend.
+   * Utilizado para reconstrução segura do estado baseada nos claims do token.
+   * IMPORTANTE: Não substitui a validação de assinatura que ocorre no backend.
+   */
+  decodeTokenPayload(token: string): Record<string, unknown> | null {
     try {
       const payloadBase64 = token.split('.')[1];
-      if (!payloadBase64) return false;
+      if (!payloadBase64) return null;
 
       const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(
@@ -95,14 +122,20 @@ export class AuthSignalService {
           .join(''),
       );
 
-      const decoded = JSON.parse(jsonPayload);
-      if (!decoded.exp) return true; // Se não houver data de expiração, considera válido
-
-      const expirationDate = new Date(decoded.exp * 1000);
-      return expirationDate > new Date();
+      return JSON.parse(jsonPayload);
     } catch {
-      return false; // Se não conseguiu parsear o JWT, considera inválido
+      return null;
     }
+  }
+
+  private isTokenValid(token: string): boolean {
+    const decoded = this.decodeTokenPayload(token);
+    if (!decoded) return false;
+
+    if (!decoded['exp']) return true; // Se não houver data de expiração, considera válido
+
+    const expirationDate = new Date((decoded['exp'] as number) * 1000);
+    return expirationDate > new Date();
   }
 
   private setupStorageListener(): void {

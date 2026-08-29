@@ -5,6 +5,7 @@ export interface StoredSession {
   token: string;
   payload: {
     sub: string;
+    user_id: number;
     role: string;
     permissions: string[];
   };
