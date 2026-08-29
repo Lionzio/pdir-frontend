@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { RoomMapComponent } from './room-map.component';
 import { RoomsService } from '../services/rooms.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -43,11 +44,14 @@ describe('RoomMapComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [RoomMapComponent, NoopAnimationsModule],
-      providers: [
-        { provide: RoomsService, useValue: mockRoomsService },
-        { provide: MatDialog, useValue: mockDialog },
-      ],
-    }).compileComponents();
+      providers: [{ provide: RoomsService, useValue: mockRoomsService }, provideRouter([])],
+    })
+      .overrideComponent(RoomMapComponent, {
+        set: {
+          providers: [{ provide: MatDialog, useValue: mockDialog }],
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(RoomMapComponent);
     component = fixture.componentInstance;

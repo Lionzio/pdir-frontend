@@ -31,11 +31,12 @@ describe('AuthSignalService', () => {
   });
 
   it('should update session and call storage', () => {
-    const payload = { sub: 'test@test.com', role: 'admin', permissions: ['all'] };
+    const payload = { sub: 'test@test.com', user_id: 1, role: 'admin', permissions: ['all'] };
     service.updateSession('token123', payload);
 
     expect(service.accessToken()).toBe('token123');
     expect(service.isAuthenticated()).toBeTrue();
+    expect(service.userId()).toBe(1);
     expect(service.role()).toBe('admin');
     expect(service.permissions()).toEqual(['all']);
     expect(storageServiceSpy.saveSession).toHaveBeenCalledWith({ token: 'token123', payload });
@@ -46,20 +47,75 @@ describe('AuthSignalService', () => {
 
     expect(service.accessToken()).toBeNull();
     expect(service.isAuthenticated()).toBeFalse();
+    expect(service.userId()).toBeNull();
     expect(storageServiceSpy.clearSession).toHaveBeenCalled();
   });
 
   it('should check permissions correctly', () => {
     service.updateSession('token123', {
       sub: 'test',
+      user_id: 1,
       role: 'user',
       permissions: ['read', 'write'],
     });
     expect(service.hasPermission('read')).toBeTrue();
     expect(service.hasPermission('delete')).toBeFalse();
 
-    service.updateSession('token123', { sub: 'test', role: 'admin', permissions: ['all'] });
+    service.updateSession('token123', {
+      sub: 'test',
+      user_id: 1,
+      role: 'admin',
+      permissions: ['all'],
+    });
     expect(service.hasPermission('delete')).toBeTrue();
+  });
+
+  it('should return true from hasRole when current role is in the allowed list', () => {
+    service.updateSession('token', {
+      sub: 'user@test.com',
+      user_id: 1,
+      role: 'DONO',
+      permissions: [],
+    });
+    expect(service.hasRole(['DONO', 'GERENTE'])).toBeTrue();
+  });
+
+  it('should return false from hasRole when current role is not in the allowed list', () => {
+    service.updateSession('token', {
+      sub: 'user@test.com',
+      user_id: 1,
+      role: 'CAMAREIRA',
+      permissions: [],
+    });
+    expect(service.hasRole(['DONO', 'GERENTE'])).toBeFalse();
+  });
+
+  it('should return true from hasRole when allowedRoles contains "all" and user has any role', () => {
+    service.updateSession('token', {
+      sub: 'user@test.com',
+      user_id: 1,
+      role: 'CAMAREIRA',
+      permissions: [],
+    });
+    expect(service.hasRole(['all'])).toBeTrue();
+  });
+
+  it('should return false from hasRole when role is null (fail-closed)', () => {
+    service.clearSession();
+    expect(service.hasRole(['DONO', 'GERENTE', 'all'])).toBeFalse();
+  });
+
+  it('should return false from hasRole after clearSession', () => {
+    service.updateSession('token', {
+      sub: 'user@test.com',
+      user_id: 1,
+      role: 'DONO',
+      permissions: [],
+    });
+    expect(service.hasRole(['DONO'])).toBeTrue();
+
+    service.clearSession();
+    expect(service.hasRole(['DONO'])).toBeFalse();
   });
 
   it('should initialize session successfully with valid token', async () => {
@@ -74,7 +130,7 @@ describe('AuthSignalService', () => {
 
     storageServiceSpy.getSession.and.returnValue({
       token: validToken,
-      payload: { sub: 'test@test.com', role: 'user', permissions: [] },
+      payload: { sub: 'test@test.com', user_id: 1, role: 'user', permissions: [] },
     });
 
     await service.initializeSession();
@@ -94,7 +150,7 @@ describe('AuthSignalService', () => {
 
     storageServiceSpy.getSession.and.returnValue({
       token: expiredToken,
-      payload: { sub: 'test@test.com', role: 'user', permissions: [] },
+      payload: { sub: 'test@test.com', user_id: 1, role: 'user', permissions: [] },
     });
 
     await service.initializeSession();
