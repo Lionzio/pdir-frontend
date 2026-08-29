@@ -463,21 +463,14 @@ export class LoginComponent {
       })
       .subscribe({
         next: (res) => {
-          // Decodifica o payload JWT minimamente para popular o AuthSignalService
-          const parts = res.access_token.split('.');
-          let payload: { sub?: string; role?: string; permissions?: string[] } = {};
-          if (parts.length === 3) {
-            try {
-              payload = JSON.parse(atob(parts[1]));
-            } catch {
-              // payload inválido: usa fallback abaixo
-            }
-          }
+          // Decodifica o payload JWT dinamicamente usando a função utilitária
+          const decoded = this.authService.decodeTokenPayload(res.access_token);
 
           this.authService.updateSession(res.access_token, {
-            sub: payload.sub ?? this.loginEmail,
-            role: payload.role ?? '',
-            permissions: payload.permissions ?? [],
+            sub: (decoded && (decoded['sub'] as string)) ?? this.loginEmail,
+            user_id: (decoded && (decoded['user_id'] as number)) ?? 0,
+            role: (decoded && (decoded['role'] as string)) ?? '',
+            permissions: (decoded && (decoded['permissions'] as string[])) ?? [],
           });
 
           this.router.navigate(['/admin/rooms']);

@@ -20,6 +20,22 @@ export const routes: Routes = [
       import('./features/admin/sync-panel/sync-panel.component').then((m) => m.SyncPanelComponent),
   },
   {
+    path: 'admin/reservations',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/reservations/pages/reservations-page.component').then(
+        (m) => m.ReservationsPageComponent,
+      ),
+  },
+  {
+    path: 'admin/reservations/new',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/reservations/new-stepper/new-reservation-stepper.component').then(
+        (m) => m.NewReservationStepperComponent,
+      ),
+  },
+  {
     path: '',
     pathMatch: 'full',
     redirectTo: 'admin/rooms',

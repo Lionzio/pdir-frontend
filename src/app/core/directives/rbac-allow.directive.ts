@@ -11,28 +11,31 @@ export class RbacAllowDirective {
   private viewContainer = inject(ViewContainerRef);
   private authService = inject(AuthSignalService);
 
-  private requiredPermissions: string[] = [];
+  private allowedRoles: string[] = [];
   private hasView = false;
 
-  @Input() set appRbacAllow(permissions: string[]) {
-    this.requiredPermissions = permissions;
+  @Input() set appRbacAllow(roles: string[]) {
+    this.allowedRoles = roles;
+    console.log('SETTER CALLED WITH', roles);
     this.updateView();
   }
 
   constructor() {
     effect(() => {
-      this.authService.permissions();
+      // Rastreia o Signal role() — qualquer mudança (login, logout, troca de role)
+      // dispara reavaliação automática da visibilidade do template.
+      this.authService.role();
       this.updateView();
     });
   }
 
   private updateView(): void {
-    const hasMatch = this.requiredPermissions.some((perm) => this.authService.hasPermission(perm));
+    const authorized = this.authService.hasRole(this.allowedRoles);
 
-    if (hasMatch && !this.hasView) {
+    if (authorized && !this.hasView) {
       this.viewContainer.createEmbeddedView(this.templateRef);
       this.hasView = true;
-    } else if (!hasMatch && this.hasView) {
+    } else if (!authorized && this.hasView) {
       this.viewContainer.clear();
       this.hasView = false;
     }
