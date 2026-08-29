@@ -19,6 +19,7 @@ import { Room } from '../models/room.model';
 import { RoomActionDialogComponent, RoomActionDialogData } from './room-action-dialog.component';
 import { RoomEditDialogComponent, RoomEditDialogData } from './room-edit-dialog.component';
 import { RbacAllowDirective } from '../../../core/directives/rbac-allow.directive';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-room-map',
@@ -31,6 +32,7 @@ import { RbacAllowDirective } from '../../../core/directives/rbac-allow.directiv
     MatButtonModule,
     MatDialogModule,
     MatButtonToggleModule,
+    RouterModule,
     RbacAllowDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,8 +52,19 @@ import { RbacAllowDirective } from '../../../core/directives/rbac-allow.directiv
             <mat-icon>{{ connected() ? 'wifi_tethering' : 'wifi_off' }}</mat-icon>
             <span>{{ connected() ? 'Ao Vivo (SSE)' : 'Desconectado' }}</span>
           </div>
+
+          <button mat-stroked-button routerLink="/admin/reservations">
+            <mat-icon>calendar_view_month</mat-icon> Grade de Reservas
+          </button>
+
+          <ng-container *appRbacAllow="['DONO', 'GERENTE', 'RECEPCIONISTA']">
+            <button mat-flat-button color="primary" routerLink="/admin/reservations/new">
+              <mat-icon>add</mat-icon> Nova Reserva
+            </button>
+          </ng-container>
+
           <ng-container *appRbacAllow="['DONO', 'GERENTE']">
-            <button mat-flat-button color="primary" (click)="openEditMetadataDialog()">
+            <button mat-flat-button routerLink="." (click)="openEditMetadataDialog()">
               <mat-icon>add</mat-icon> Novo Quarto
             </button>
           </ng-container>

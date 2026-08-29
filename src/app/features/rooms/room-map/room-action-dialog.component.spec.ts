@@ -21,14 +21,20 @@ describe('RoomActionDialogComponent', () => {
   const roomsSignal = signal<Room[]>([mockRoom]);
 
   beforeEach(async () => {
+    roomsSignal.set([{ ...mockRoom, status: 'AVAILABLE' }]);
     mockDialogRef = jasmine.createSpyObj('MatDialogRef', ['close']);
     mockRoomsService = jasmine.createSpyObj('RoomsService', ['updateRoomStatus']);
     mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
-    mockAuthService = jasmine.createSpyObj('AuthSignalService', ['hasPermission', 'role']);
+    mockAuthService = jasmine.createSpyObj('AuthSignalService', [
+      'hasPermission',
+      'role',
+      'hasRole',
+    ]);
 
     // Setup signals
     Object.defineProperty(mockRoomsService, 'rooms', { get: () => roomsSignal });
     mockAuthService.hasPermission.and.returnValue(true); // default to allow everything for basic tests
+    mockAuthService.hasRole.and.returnValue(true);
     mockAuthService.role.and.returnValue('DONO'); // default role
 
     await TestBed.configureTestingModule({
