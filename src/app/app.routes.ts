@@ -36,6 +36,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/finance',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/finance/pages/finance-dashboard.component').then(
+        (m) => m.FinanceDashboardComponent,
+      ),
+  },
+  {
     path: '',
     pathMatch: 'full',
     redirectTo: 'admin/rooms',
