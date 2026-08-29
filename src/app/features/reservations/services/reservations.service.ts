@@ -1,0 +1,87 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Room } from '../../rooms/models/room.model';
+import { toUtcIso8601 } from '../../../core/utils/date.utils';
+
+export interface ReservationCreateRequest {
+  room_id: number;
+  guest_cpf: string;
+  guest_full_name: string;
+  check_in: string; // ISO-8601 UTC ou YYYY-MM-DD
+  check_out: string; // ISO-8601 UTC ou YYYY-MM-DD
+  status: string;
+}
+
+export interface Reservation {
+  id: number;
+  room_id: number;
+  guest_id: number | null;
+  check_in: string; // ISO-8601 UTC
+  check_out: string; // ISO-8601 UTC
+  status: string;
+  total_price: number | null;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ReservationsService {
+  private http = inject(HttpClient);
+  private apiUrl = '/api/v1/reservations';
+
+  /**
+   * Cria uma reserva enviando os dados pro backend real.
+   */
+  createReservation(
+    payload: Omit<ReservationCreateRequest, 'check_in' | 'check_out'> & {
+      check_in: Date;
+      check_out: Date;
+    },
+  ): Observable<Reservation> {
+    const formattedPayload: ReservationCreateRequest = {
+      ...payload,
+      check_in: toUtcIso8601(payload.check_in)!,
+      check_out: toUtcIso8601(payload.check_out)!,
+    };
+    return this.http.post<Reservation>(this.apiUrl, formattedPayload);
+  }
+
+  /**
+   * Lista reservas reais do PostgreSQL com filtros temporais opcionais.
+   */
+  listReservations(startDate?: Date, endDate?: Date): Observable<Reservation[]> {
+    let params = new HttpParams();
+    if (startDate) {
+      const isoStart = toUtcIso8601(startDate);
+      if (isoStart) {
+        params = params.set('start_date', isoStart.split('T')[0]);
+      }
+    }
+    if (endDate) {
+      const isoEnd = toUtcIso8601(endDate);
+      if (isoEnd) {
+        params = params.set('end_date', isoEnd.split('T')[0]);
+      }
+    }
+    return this.http.get<Reservation[]>(this.apiUrl, { params });
+  }
+
+  /**
+   * Lista quartos disponíveis no backend real para o intervalo [checkIn, checkOut).
+   */
+  listAvailableRooms(checkIn: Date, checkOut: Date): Observable<Room[]> {
+    let params = new HttpParams();
+    const isoIn = toUtcIso8601(checkIn);
+    const isoOut = toUtcIso8601(checkOut);
+
+    if (isoIn) {
+      params = params.set('check_in', isoIn.split('T')[0]);
+    }
+    if (isoOut) {
+      params = params.set('check_out', isoOut.split('T')[0]);
+    }
+
+    return this.http.get<Room[]>('/api/v1/rooms/available', { params });
+  }
+}
