@@ -9,7 +9,6 @@ import {
 import { authInterceptor } from './auth.interceptor';
 import { AuthSignalService } from '../services/auth-signal.service';
 import { PLATFORM_ID } from '@angular/core';
-import { AuthStorageService } from '../services/auth-storage.service';
 import { Router } from '@angular/router';
 
 function createMockJwt(payload: Record<string, unknown>): string {
@@ -33,7 +32,6 @@ describe('AuthInterceptor', () => {
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         AuthSignalService,
-        AuthStorageService,
         { provide: PLATFORM_ID, useValue: 'browser' },
       ],
     });

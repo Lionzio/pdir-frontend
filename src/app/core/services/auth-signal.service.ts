@@ -1,6 +1,7 @@
-import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Injectable, OnDestroy, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { AuthStorageService } from './auth-storage.service';
+import { HttpBackend, HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 export interface AuthState {
   accessToken: string | null;
@@ -10,21 +11,41 @@ export interface AuthState {
   permissions: string[];
 }
 
+export interface SessionClaims {
+  sub: string;
+  user_id: number;
+  role: string;
+  permissions: string[];
+}
+
+const EMPTY_STATE: AuthState = {
+  accessToken: null,
+  email: null,
+  userId: null,
+  role: null,
+  permissions: [],
+};
+
+const REFRESH_URL = '/api/v1/auth/refresh';
+const LOGOUT_CHANNEL = 'pdir-auth';
+
+/**
+ * Sessão do usuário **só em memória** (T-19).
+ *
+ * O access token não é mais gravado no localStorage, onde qualquer XSS o leria. Ao recarregar a
+ * página, a sessão é restaurada pelo refresh token, que fica num cookie HttpOnly inacessível ao
+ * JavaScript. O logout é propagado às outras abas por BroadcastChannel (sem gravar nada no storage).
+ */
 @Injectable({
   providedIn: 'root',
 })
-export class AuthSignalService {
-  private authStorage = inject(AuthStorageService);
+export class AuthSignalService implements OnDestroy {
   private platformId = inject(PLATFORM_ID);
+  // Cliente sem interceptors: a restauração da sessão não pode disparar o refresh do interceptor
+  private rawHttp = new HttpClient(inject(HttpBackend));
+  private channel: BroadcastChannel | null = null;
 
-  // Estado privado reativo
-  private state = signal<AuthState>({
-    accessToken: null,
-    email: null,
-    userId: null,
-    role: null,
-    permissions: [],
-  });
+  private state = signal<AuthState>(EMPTY_STATE);
 
   // Seletores públicos imutáveis
   readonly accessToken = computed(() => this.state().accessToken);
@@ -35,33 +56,45 @@ export class AuthSignalService {
   readonly permissions = computed(() => this.state().permissions);
 
   constructor() {
-    this.setupStorageListener();
+    if (isPlatformBrowser(this.platformId) && typeof BroadcastChannel !== 'undefined') {
+      this.channel = new BroadcastChannel(LOGOUT_CHANNEL);
+      this.channel.onmessage = (event: MessageEvent) => {
+        if (event.data === 'logout') this.state.set(EMPTY_STATE);
+      };
+    }
   }
 
-  initializeSession(): Promise<void> {
-    return new Promise((resolve) => {
-      const session = this.authStorage.getSession();
+  ngOnDestroy(): void {
+    this.channel?.close();
+  }
 
-      if (session && this.isTokenValid(session.token)) {
-        this.state.set({
-          accessToken: session.token,
-          email: session.payload.sub,
-          userId: session.payload.user_id,
-          role: session.payload.role,
-          permissions: session.payload.permissions,
-        });
-      } else {
-        this.clearSession(); // Garante a limpeza se expirado/inválido
-      }
+  /** Restaura a sessão no boot pelo cookie HttpOnly do refresh; sem cookie válido, segue deslogado. */
+  async initializeSession(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    try {
+      const res = await firstValueFrom(
+        this.rawHttp.post<{ access_token: string }>(REFRESH_URL, {}, { withCredentials: true }),
+      );
+      if (!this.applyAccessToken(res.access_token)) this.state.set(EMPTY_STATE);
+    } catch {
+      this.state.set(EMPTY_STATE);
+    }
+  }
 
-      resolve();
+  /** Aplica um access token recebido do backend, se tiver os claims obrigatórios. */
+  applyAccessToken(token: string): boolean {
+    const decoded = this.decodeTokenPayload(token);
+    if (!decoded || !decoded['sub'] || !decoded['user_id'] || !decoded['role']) return false;
+    this.updateSession(token, {
+      sub: decoded['sub'] as string,
+      user_id: decoded['user_id'] as number,
+      role: decoded['role'] as string,
+      permissions: (decoded['permissions'] as string[]) || [],
     });
+    return true;
   }
 
-  updateSession(
-    token: string,
-    payload: { sub: string; user_id: number; role: string; permissions: string[] },
-  ): void {
+  updateSession(token: string, payload: SessionClaims): void {
     this.state.set({
       accessToken: token,
       email: payload.sub,
@@ -69,19 +102,11 @@ export class AuthSignalService {
       role: payload.role,
       permissions: payload.permissions,
     });
-
-    this.authStorage.saveSession({ token, payload });
   }
 
   clearSession(): void {
-    this.state.set({
-      accessToken: null,
-      email: null,
-      userId: null,
-      role: null,
-      permissions: [],
-    });
-    this.authStorage.clearSession();
+    this.state.set(EMPTY_STATE);
+    this.channel?.postMessage('logout');
   }
 
   hasPermission(permissionCode: string): boolean {
@@ -125,27 +150,6 @@ export class AuthSignalService {
       return JSON.parse(jsonPayload);
     } catch {
       return null;
-    }
-  }
-
-  private isTokenValid(token: string): boolean {
-    const decoded = this.decodeTokenPayload(token);
-    if (!decoded) return false;
-
-    if (!decoded['exp']) return true; // Se não houver data de expiração, considera válido
-
-    const expirationDate = new Date((decoded['exp'] as number) * 1000);
-    return expirationDate > new Date();
-  }
-
-  private setupStorageListener(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      window.addEventListener('storage', (event: StorageEvent) => {
-        if (event.key === this.authStorage.getStorageKey()) {
-          // Se os dados mudaram em outra aba, inicializa a sessão novamente (ou desloga se tiverem limpado)
-          this.initializeSession();
-        }
-      });
     }
   }
 }

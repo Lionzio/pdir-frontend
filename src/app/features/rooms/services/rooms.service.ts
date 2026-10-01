@@ -35,6 +35,7 @@ export class RoomsService implements OnDestroy {
   private currentBackoff = 1000;
   private readonly maxBackoff = 30000;
   private isIntentionalDisconnect = false;
+  private connecting = false;
 
   loadRooms(): void {
     this._loading.set(true);
@@ -93,20 +94,35 @@ export class RoomsService implements OnDestroy {
   }
 
   connectToStream(): void {
-    if (this.eventSource || this._connected()) {
+    if (this.eventSource || this._connected() || this.connecting) {
       return;
     }
 
-    const token = this.authService.accessToken();
-    if (!token) {
+    if (!this.authService.accessToken()) {
       this._error.set('Não autorizado. Faça login novamente.');
       return;
     }
 
     this.isIntentionalDisconnect = false;
+    this.connecting = true;
 
-    // Fallback: EventSource não suporta headers, usando query string token como definido na US-05.1
-    const url = `/api/v1/rooms/events?token=${token}`;
+    // O EventSource não envia headers: em vez do JWT na URL (vaza em logs e histórico), um ticket
+    // opaco de uso único, válido por 30 s, pedido com o Bearer pelo HttpClient (T-19).
+    // A cada reconexão um ticket novo é pedido, porque o anterior já foi consumido.
+    this.http.post<{ ticket: string }>('/api/v1/rooms/events/ticket', {}).subscribe({
+      next: ({ ticket }) => {
+        this.connecting = false;
+        if (this.isIntentionalDisconnect) return;
+        this.openEventSource(`/api/v1/rooms/events?ticket=${encodeURIComponent(ticket)}`);
+      },
+      error: () => {
+        this.connecting = false;
+        if (!this.isIntentionalDisconnect) this.scheduleReconnect();
+      },
+    });
+  }
+
+  private openEventSource(url: string): void {
     this.eventSource = new EventSource(url);
 
     this.eventSource.onopen = () => {
