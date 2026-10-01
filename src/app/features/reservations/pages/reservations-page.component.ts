@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import {
@@ -11,6 +12,11 @@ import {
   TimelineReservation,
 } from '../timeline/reservation-timeline.component';
 import { ReservationsService, Reservation } from '../services/reservations.service';
+import {
+  ReservationDetailData,
+  ReservationDetailDialogComponent,
+  ReservationDetailResult,
+} from '../detail/reservation-detail-dialog.component';
 import { RoomsService } from '../../rooms/services/rooms.service';
 
 import { RouterModule } from '@angular/router';
@@ -100,6 +106,8 @@ export class ReservationsPageComponent implements OnInit {
   private roomsService = inject(RoomsService);
 
   loading = signal(true);
+  private dialog = inject(MatDialog);
+  private lastRange: { start: Date; end: Date } | null = null;
 
   private _reservations = signal<Reservation[]>([]);
 
@@ -146,11 +154,30 @@ export class ReservationsPageComponent implements OnInit {
     this.router.navigate(['/admin/reservations/new']);
   }
 
+  /** Abre o detalhe da reserva com check-in, check-out e conta (T-40). */
   onReservationClick(res: TimelineReservation) {
-    console.log('Reserva clicada:', res);
+    const room = this.timelineRooms().find((r) => r.id === res.roomId);
+    const data: ReservationDetailData = {
+      id: res.id,
+      guestName: res.guestName,
+      roomNumber: room?.number ?? String(res.roomId),
+      checkIn: res.checkIn,
+      checkOut: res.checkOut,
+      status: res.status,
+    };
+    this.dialog
+      .open<ReservationDetailDialogComponent, ReservationDetailData, ReservationDetailResult>(
+        ReservationDetailDialogComponent,
+        { data, width: '560px' },
+      )
+      .afterClosed()
+      .subscribe((result) => {
+        if (result?.changed) this.loadReservations(this.lastRange?.start, this.lastRange?.end);
+      });
   }
 
   onDateRangeChange(range: { start: Date; end: Date }) {
+    this.lastRange = range;
     this.loadReservations(range.start, range.end);
   }
 }
