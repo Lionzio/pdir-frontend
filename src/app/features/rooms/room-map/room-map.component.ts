@@ -53,11 +53,12 @@ import { RouterModule } from '@angular/router';
             <span>{{ connected() ? 'Ao Vivo (SSE)' : 'Desconectado' }}</span>
           </div>
 
-          <button mat-stroked-button routerLink="/admin/reservations">
-            <mat-icon>calendar_view_month</mat-icon> Grade de Reservas
-          </button>
-
+          <!-- A CAMAREIRA usa o mapa, mas não as reservas (rotas FRONT_DESK): sem atalhos para elas (T-52) -->
           <ng-container *appRbacAllow="['DONO', 'GERENTE', 'RECEPCIONISTA']">
+            <button mat-stroked-button routerLink="/admin/reservations">
+              <mat-icon>calendar_view_month</mat-icon> Grade de Reservas
+            </button>
+
             <button mat-flat-button color="primary" routerLink="/admin/reservations/new">
               <mat-icon>add</mat-icon> Nova Reserva
             </button>
