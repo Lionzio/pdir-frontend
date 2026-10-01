@@ -1,5 +1,4 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { AuthStorageService } from '../../../core/services/auth-storage.service';
 
 export interface ChatMessage {
@@ -19,8 +18,6 @@ export class CopilotService {
   public isVisible = signal<boolean>(false);
   private sessionId = crypto.randomUUID();
   private authStorage = inject(AuthStorageService);
-
-  constructor(private http: HttpClient) {}
 
   toggleVisibility() {
     this.isVisible.update((v) => !v);
@@ -104,7 +101,7 @@ export class CopilotService {
                 if (idx >= 0) newArr[idx] = { ...assistantMsg };
                 return newArr;
               });
-            } catch (e) {
+            } catch {
               // Ignore malformed JSON chunks from splits
             }
           }

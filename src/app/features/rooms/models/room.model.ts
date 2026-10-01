@@ -6,6 +6,14 @@ export interface RoomCategory {
   readonly description?: string;
 }
 
+/** Item de GET /api/v1/rooms/categories (RoomCategoryResponse em rooms_controller.py). */
+export interface RoomCategoryOption {
+  readonly id: number;
+  readonly name: string;
+  readonly capacity: number;
+  readonly base_rate: number;
+}
+
 export interface Room {
   readonly id: number;
   readonly number: string;

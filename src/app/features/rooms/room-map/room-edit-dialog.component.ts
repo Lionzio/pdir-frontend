@@ -11,7 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { RoomsService } from '../services/rooms.service';
-import { Room } from '../models/room.model';
+import { Room, RoomCategoryOption } from '../models/room.model';
 
 export interface RoomEditDialogData {
   room?: Room; // Se definido, modo de edição. Senão, modo de criação.
@@ -126,7 +126,7 @@ export class RoomEditDialogComponent implements OnInit {
   isSaving = signal(false);
   isEditMode = !!this.data?.room;
 
-  availableCategories: any[] = [];
+  availableCategories: RoomCategoryOption[] = [];
 
   form: FormGroup = this.fb.group({
     number: [this.data?.room?.number || '', Validators.required],
@@ -136,13 +136,13 @@ export class RoomEditDialogComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.http.get<any[]>('/api/v1/rooms/categories').subscribe({
+    this.http.get<RoomCategoryOption[]>('/api/v1/rooms/categories').subscribe({
       next: (cats) => {
         this.availableCategories = cats;
       },
       error: () => {
         this.snackBar.open('Falha ao carregar categorias', 'Fechar', { duration: 3000 });
-      }
+      },
     });
   }
 

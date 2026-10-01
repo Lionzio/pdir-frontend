@@ -1,36 +1,107 @@
-name: Frontend CI Pipeline
+name: Frontend CI
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [main, develop]
+  # Todos os PRs, inclusive os empilhados (base diferente de main/develop)
   pull_request:
-    branches: [ "main", "develop" ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Angular 22 exige Node ^22.22.3 || ^24.15.0 (node_modules/@angular/core/package.json)
+  NODE_VERSION: "22"
 
 jobs:
-  build-and-test:
+  quality:
+    name: Qualidade (ESLint, Prettier, tsc)
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js 20
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
-    - name: Install Dependencies
-      run: npm ci
+      - name: Instalar dependências
+        run: npm ci
 
-    - name: Linting (ESLint)
-      run: npm run lint
+      - name: Lint (ESLint)
+        run: npm run lint
 
-    - name: Formatting Check (Prettier)
-      run: npx prettier --check "src/**/*.{ts,html,scss}"
+      - name: Formatação (Prettier)
+        run: npm run format:check
 
-    - name: Unit Tests
-      run: npm run test
+      - name: Tipagem (tsc)
+        run: npx tsc --noEmit -p tsconfig.json
 
-    - name: Build Production
-      run: npm run build
+  tests:
+    name: Testes unitários (Karma, Chrome headless)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Testes com cobertura
+        run: npm test -- --code-coverage
+
+      - name: Relatório de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-frontend
+          path: coverage/
+          if-no-files-found: ignore
+
+  build:
+    name: Build de produção
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+  secrets:
+    name: Segredos no histórico (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (histórico completo)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: gitleaks
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz gitleaks
+          ./gitleaks git . --redact --no-banner

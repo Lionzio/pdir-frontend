@@ -1,10 +1,9 @@
-import { Component, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewChecked, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
-import { trigger, state, style, transition, animate } from '@angular/animations';
 import { CopilotService } from '../services/copilot.service';
 import { ChatMessageComponent } from './chat-message/chat-message.component';
 
@@ -43,7 +42,7 @@ import { ChatMessageComponent } from './chat-message/chat-message.component';
                 <p>Eu posso consultar reservas, quartos, extratos e políticas do hotel.</p>
               </div>
             }
-            
+
             @for (msg of copilot.messages(); track msg.id) {
               <app-chat-message [message]="msg"></app-chat-message>
             }
@@ -51,15 +50,20 @@ import { ChatMessageComponent } from './chat-message/chat-message.component';
 
           <!-- Input Area -->
           <div class="chat-input-area">
-            <input 
-              type="text" 
-              class="chat-input" 
-              [(ngModel)]="inputText" 
+            <input
+              type="text"
+              class="chat-input"
+              [(ngModel)]="inputText"
               (keyup.enter)="sendMessage()"
-              placeholder="Digite sua mensagem..." 
+              placeholder="Digite sua mensagem..."
               [disabled]="copilot.isTyping()"
             />
-            <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="copilot.isTyping() || !inputText.trim()">
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="sendMessage()"
+              [disabled]="copilot.isTyping() || !inputText.trim()"
+            >
               <mat-icon>send</mat-icon>
             </button>
           </div>
@@ -160,7 +164,7 @@ export class ChatWidgetComponent implements AfterViewChecked {
   @ViewChild('scrollMe') private myScrollContainer!: ElementRef;
   inputText: string = '';
 
-  constructor(public copilot: CopilotService) {}
+  readonly copilot = inject(CopilotService);
 
   ngAfterViewChecked() {
     this.scrollToBottom();
@@ -170,7 +174,9 @@ export class ChatWidgetComponent implements AfterViewChecked {
     try {
       this.myScrollContainer.nativeElement.scrollTop =
         this.myScrollContainer.nativeElement.scrollHeight;
-    } catch (err) {}
+    } catch {
+      // container ainda não renderizado
+    }
   }
 
   sendMessage() {
