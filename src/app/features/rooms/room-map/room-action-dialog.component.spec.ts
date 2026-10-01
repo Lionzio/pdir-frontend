@@ -115,9 +115,9 @@ describe('RoomActionDialogComponent', () => {
   }));
 
   describe('canCamareiraMakeAvailable', () => {
-    it('should return true for DONO/GERENTE (all permission)', () => {
-      mockAuthService.hasPermission.and.returnValue(true);
-      mockAuthService.role.and.returnValue('DONO');
+    it('should return true for DONO/GERENTE', () => {
+      mockAuthService.hasPermission.and.returnValue(false);
+      mockAuthService.role.and.returnValue('GERENTE');
       expect(component.canCamareiraMakeAvailable()).toBeTrue();
     });
 
@@ -147,6 +147,45 @@ describe('RoomActionDialogComponent', () => {
       roomsSignal.set([{ ...mockRoom, status: 'AVAILABLE' }]);
       fixture.detectChanges();
       expect(component.canCamareiraMakeAvailable()).toBeFalse();
+    });
+  });
+  // T-34: cada papel só vê as ações que o backend aceita
+  describe('ações por papel', () => {
+    const render = (role: string, status: Room['status']): string[] => {
+      mockAuthService.role.and.returnValue(role);
+      mockAuthService.hasPermission.and.returnValue(false);
+      // Mesma semântica do AuthSignalService.hasRole real, inclusive o curinga 'all'
+      mockAuthService.hasRole.and.callFake(
+        (roles: string[]) => roles.includes('all') || roles.includes(role),
+      );
+      roomsSignal.set([{ ...mockRoom, status }]);
+      const view = TestBed.createComponent(RoomActionDialogComponent);
+      view.detectChanges();
+      const buttons = view.nativeElement.querySelectorAll('.action-buttons button');
+      return Array.from(buttons as NodeListOf<HTMLElement>).map(
+        (b) => Array.from(b.classList).find((c) => c.startsWith('btn-')) ?? '',
+      );
+    };
+
+    it('camareira só vê a opção de liberar o quarto', () => {
+      expect(render('CAMAREIRA', 'CLEANING')).toEqual(['btn-available']);
+    });
+
+    it('camareira não vê ação nenhuma num quarto em manutenção', () => {
+      expect(render('CAMAREIRA', 'MAINTENANCE')).toEqual([]);
+    });
+
+    it('recepcionista não vê limpeza, manutenção nem interdição', () => {
+      expect(render('RECEPCIONISTA', 'CLEANING')).toEqual(['btn-available', 'btn-occupied']);
+    });
+
+    it('gerente vê as ações de gestão', () => {
+      expect(render('GERENTE', 'AVAILABLE')).toEqual([
+        'btn-occupied',
+        'btn-cleaning',
+        'btn-maintenance',
+        'btn-out-of-service',
+      ]);
     });
   });
 });
