@@ -96,12 +96,18 @@ refresh token é `SameSite=Strict`.
 
 ## CI
 
-O [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em todo push para `main`/`develop` e em todo PR, com Node 22 e quatro jobs:
+O [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em todo push para `main`/`develop` e em todo PR, com Node 22.
+Cada job é um **gate**: se falhar, o PR não deve ser mergeado (T-46).
 
-- **qualidade:** ESLint, Prettier e `tsc --noEmit`;
-- **testes:** com cobertura publicada como artefato;
-- **build** de produção;
-- **gitleaks** no histórico completo.
+| Job                                       | Bloqueia quando                                                                                                              |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Qualidade (ESLint, Prettier, tsc)         | erro de lint, arquivo fora do Prettier ou erro de tipos                                                                      |
+| Testes unitários (Karma, Chrome headless) | spec falhando ou cobertura abaixo de 75% de linhas e statements, 70% de funções e 65% de branches (`karma.conf.cjs`)         |
+| Build de produção                         | o build falha (o aviso de orçamento do bundle não bloqueia)                                                                  |
+| Dependências (npm audit)                  | vulnerabilidade **alta ou crítica** em dependência de produção; o audit das dependências de desenvolvimento é só informativo |
+| Segredos no histórico (gitleaks)          | segredo no histórico do git                                                                                                  |
+
+Para exigir esses checks no merge (proteção de branch), veja `tasks/T-11/aplicar-protecao.ps1`.
 
 ## Fluxo de branches
 

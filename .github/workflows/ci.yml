@@ -89,6 +89,27 @@ jobs:
       - name: Build
         run: npm run build
 
+  audit:
+    name: Dependências (npm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Bloqueia: vulnerabilidade alta ou crítica em dependência que vai para o navegador
+      - name: Dependências de produção (bloqueante)
+        run: npm audit --omit=dev --audit-level=high
+
+      # Informativo: ferramentas de build/teste; avisos novos aparecem sem mudança no projeto
+      - name: Todas as dependências (informativo)
+        continue-on-error: true
+        run: npm audit --audit-level=high
+
   secrets:
     name: Segredos no histórico (gitleaks)
     runs-on: ubuntu-latest
