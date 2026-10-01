@@ -53,14 +53,29 @@ sincronização com Google Sheets e o Copilot de IA. A API fica em
 
 ## Scripts
 
-| Comando                                   | O que faz                                                 |
-| ----------------------------------------- | --------------------------------------------------------- |
-| `npm start`                               | servidor de desenvolvimento com proxy para a API          |
-| `npm test`                                | testes unitários (Karma, Chrome headless, execução única) |
-| `npm test -- --code-coverage`             | testes + relatório de cobertura em `coverage/`            |
-| `npm run lint`                            | ESLint em `src/**/*.{ts,html}`                            |
-| `npm run format:check` / `npm run format` | confere / aplica o Prettier                               |
-| `npm run build`                           | build de produção em `dist/pdir-frontend`                 |
+| Comando                                   | O que faz                                                   |
+| ----------------------------------------- | ----------------------------------------------------------- |
+| `npm start`                               | servidor de desenvolvimento com proxy para a API            |
+| `npm test`                                | testes unitários (Karma, Chrome headless, execução única)   |
+| `npm test -- --code-coverage`             | testes + relatório de cobertura em `coverage/`              |
+| `npm run lint`                            | ESLint em `src/**/*.{ts,html}`                              |
+| `npm run format:check` / `npm run format` | confere / aplica o Prettier                                 |
+| `npm run build`                           | build de produção em `dist/pdir-frontend`                   |
+| `npm run api:types`                       | regenera `src/app/core/api/schema.ts` de `api/openapi.json` |
+
+### Tipos do contrato da API
+
+Os modelos (`Room`, `RoomStatus`, categorias...) derivam de `src/app/core/api/schema.ts`, gerado do OpenAPI do backend.
+Quando a API mudar:
+
+```bash
+# no pdir-backend
+uv run python -m app.export_openapi > ../pdir-frontend/api/openapi.json
+# no pdir-frontend
+npm run api:types
+```
+
+O `tsc` passa a acusar qualquer divergência entre o frontend e o contrato.
 
 Antes de cada commit, o Husky roda o `lint-staged` (ESLint `--fix` + Prettier nos arquivos alterados).
 

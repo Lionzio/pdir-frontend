@@ -17,7 +17,14 @@ describe('RoomActionDialogComponent', () => {
   let mockSnackBar: jasmine.SpyObj<MatSnackBar>;
   let mockAuthService: jasmine.SpyObj<AuthSignalService>;
 
-  const mockRoom: Room = { id: 1, number: '101', floor: 1, status: 'AVAILABLE', capacity: 2 };
+  const mockRoom: Room = {
+    id: 1,
+    number: '101',
+    floor: 1,
+    category_id: 1,
+    status: 'AVAILABLE',
+    capacity: 2,
+  };
   const roomsSignal = signal<Room[]>([mockRoom]);
 
   beforeEach(async () => {

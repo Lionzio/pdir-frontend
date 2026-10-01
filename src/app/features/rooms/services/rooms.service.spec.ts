@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { AuthSignalService } from '../../../core/services/auth-signal.service';
+import { Room } from '../models/room.model';
 import { RoomsService } from './rooms.service';
 
 /** EventSource falso: registra a URL e expõe os handlers para o teste. */
@@ -80,5 +81,80 @@ describe('RoomsService — stream SSE com ticket (T-19)', () => {
 
     http.expectOne('/api/v1/rooms/events/ticket').flush({ ticket: 'unico', expires_in: 30 });
     expect(FakeEventSource.urls.length).toBe(1);
+  });
+
+  describe('eventos de quartos no stream (T-35)', () => {
+    const room = (id: number, number: string): Room => ({
+      id,
+      number,
+      floor: 1,
+      category_id: 1,
+      status: 'AVAILABLE',
+      capacity: null,
+      category: null,
+    });
+
+    const seed = (rooms: Room[]) => {
+      service.loadRooms();
+      http.expectOne('/api/v1/rooms').flush(rooms);
+    };
+
+    it('room_created de um quarto novo recarrega a lista (aparece sem recarregar a página)', () => {
+      seed([room(1, '101')]);
+
+      service.handleEvent({
+        event_type: 'room_created',
+        room_id: 2,
+        room_number: '102',
+        category_id: 1,
+        floor: 1,
+        created_by: 'gerente@exemplo.test',
+        timestamp: '2099-01-01T00:00:00Z',
+      });
+      http.expectOne('/api/v1/rooms').flush([room(1, '101'), room(2, '102')]);
+
+      expect(service.rooms().map((r) => r.number)).toEqual(['101', '102']);
+    });
+
+    it('room_created de quarto já conhecido não recarrega', () => {
+      seed([room(1, '101')]);
+      service.handleEvent({
+        event_type: 'room_created',
+        room_id: 1,
+        room_number: '101',
+        category_id: 1,
+        floor: 1,
+        created_by: 'x',
+        timestamp: '2099-01-01T00:00:00Z',
+      });
+      http.expectNone('/api/v1/rooms');
+    });
+
+    it('room_metadata_updated troca o número no mapa', () => {
+      seed([room(1, '101')]);
+      service.handleEvent({
+        event_type: 'room_metadata_updated',
+        room_id: 1,
+        previous_number: '101',
+        new_number: '101A',
+        updated_by: 'x',
+        timestamp: '2099-01-01T00:00:00Z',
+      });
+      expect(service.rooms()[0].number).toBe('101A');
+    });
+
+    it('room_status_changed continua atualizando o status', () => {
+      seed([room(1, '101')]);
+      service.handleEvent({
+        event_type: 'room_status_changed',
+        room_id: 1,
+        room_number: '101',
+        previous_status: 'AVAILABLE',
+        new_status: 'CLEANING',
+        changed_by: 'x',
+        timestamp: '2099-01-01T00:00:00Z',
+      });
+      expect(service.rooms()[0].status).toBe('CLEANING');
+    });
   });
 });

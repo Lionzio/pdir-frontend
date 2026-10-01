@@ -1,0 +1,2980 @@
+{
+  "components": {
+    "schemas": {
+      "AccountCloseRequest": {
+        "description": "Payload para fechamento financeiro (checkout) de uma conta.",
+        "properties": {
+          "payment_amount": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "0.00",
+            "description": "Valor pago pelo hóspede no ato do checkout (pode ser 0 se já quitado)",
+            "title": "Payment Amount"
+          },
+          "payment_description": {
+            "default": "Pagamento no checkout",
+            "description": "Descrição do pagamento final",
+            "maxLength": 500,
+            "title": "Payment Description",
+            "type": "string"
+          }
+        },
+        "title": "AccountCloseRequest",
+        "type": "object"
+      },
+      "AccountCloseResponse": {
+        "description": "Resposta após fechamento de conta.",
+        "properties": {
+          "balance": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Balance",
+            "type": "string"
+          },
+          "change_amount": {
+            "description": "Troco a ser devolvido ao hóspede (0 se não há troco)",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Change Amount",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "reservation_id": {
+            "title": "Reservation Id",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_charges": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Charges",
+            "type": "string"
+          },
+          "total_paid": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Paid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reservation_id",
+          "status",
+          "total_charges",
+          "total_paid",
+          "balance",
+          "change_amount",
+          "message"
+        ],
+        "title": "AccountCloseResponse",
+        "type": "object"
+      },
+      "AccountResponse": {
+        "description": "Representação serializada de uma conta financeira.",
+        "properties": {
+          "balance": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Balance",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "reservation_id": {
+            "title": "Reservation Id",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_charges": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Charges",
+            "type": "string"
+          },
+          "total_paid": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Paid",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reservation_id",
+          "status",
+          "total_charges",
+          "total_paid",
+          "balance",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AccountResponse",
+        "type": "object"
+      },
+      "AccountStatementResponse": {
+        "description": "Extrato completo da conta com todas as transações.",
+        "properties": {
+          "balance": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Balance",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "reservation_id": {
+            "title": "Reservation Id",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_charges": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Charges",
+            "type": "string"
+          },
+          "total_paid": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Paid",
+            "type": "string"
+          },
+          "transactions": {
+            "items": {
+              "$ref": "#/components/schemas/TransactionResponse"
+            },
+            "title": "Transactions",
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reservation_id",
+          "status",
+          "total_charges",
+          "total_paid",
+          "balance",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AccountStatementResponse",
+        "type": "object"
+      },
+      "Body_login_for_access_token_api_v1_auth_token_post": {
+        "properties": {
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "password",
+            "title": "Client Secret"
+          },
+          "grant_type": {
+            "anyOf": [
+              {
+                "pattern": "^password$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Type"
+          },
+          "password": {
+            "format": "password",
+            "title": "Password",
+            "type": "string"
+          },
+          "scope": {
+            "default": "",
+            "title": "Scope",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_for_access_token_api_v1_auth_token_post",
+        "type": "object"
+      },
+      "ChatRequest": {
+        "properties": {
+          "message": {
+            "description": "A mensagem enviada pelo usuário",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "session_id": {
+            "description": "ID da sessão atual (UUID gerado pelo cliente)",
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "message"
+        ],
+        "title": "ChatRequest",
+        "type": "object"
+      },
+      "GuestResponse": {
+        "description": "Representação serializada de um hóspede.",
+        "properties": {
+          "cpf": {
+            "description": "CPF do hóspede",
+            "title": "Cpf",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "E-mail de contato",
+            "title": "Email"
+          },
+          "full_name": {
+            "description": "Nome completo do hóspede",
+            "title": "Full Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Telefone de contato",
+            "title": "Phone"
+          }
+        },
+        "required": [
+          "id",
+          "full_name",
+          "cpf"
+        ],
+        "title": "GuestResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "InvoiceSummary": {
+        "description": "Resumo de uma fatura/conta para exibição no Kanban financeiro.",
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "integer"
+          },
+          "account_status": {
+            "title": "Account Status",
+            "type": "string"
+          },
+          "balance": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Balance",
+            "type": "string"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "guest_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guest Name"
+          },
+          "maturity_status": {
+            "title": "Maturity Status",
+            "type": "string"
+          },
+          "reservation_id": {
+            "title": "Reservation Id",
+            "type": "integer"
+          },
+          "room_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Room Number"
+          },
+          "total_charges": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Charges",
+            "type": "string"
+          },
+          "total_paid": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Paid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "reservation_id",
+          "balance",
+          "total_charges",
+          "total_paid",
+          "maturity_status",
+          "account_status"
+        ],
+        "title": "InvoiceSummary",
+        "type": "object"
+      },
+      "RefundRequest": {
+        "description": "Payload para estorno de uma transação.",
+        "properties": {
+          "reason": {
+            "description": "Justificativa obrigatória para o estorno",
+            "examples": [
+              "Cobrança indevida de consumo de minibar — hóspede não utilizou."
+            ],
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "RefundRequest",
+        "type": "object"
+      },
+      "RefundResponse": {
+        "description": "Resposta após estorno processado.",
+        "properties": {
+          "amount_refunded": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount Refunded",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "original_transaction_id": {
+            "title": "Original Transaction Id",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "refund_transaction_id": {
+            "title": "Refund Transaction Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "refund_transaction_id",
+          "original_transaction_id",
+          "amount_refunded",
+          "reason",
+          "message"
+        ],
+        "title": "RefundResponse",
+        "type": "object"
+      },
+      "ReservationCreateRequest": {
+        "properties": {
+          "check_in": {
+            "format": "date",
+            "title": "Check In",
+            "type": "string"
+          },
+          "check_out": {
+            "format": "date",
+            "title": "Check Out",
+            "type": "string"
+          },
+          "guest_cpf": {
+            "description": "CPF do hóspede, com ou sem máscara; gravado só com os dígitos",
+            "title": "Guest Cpf",
+            "type": "string"
+          },
+          "guest_full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guest Full Name"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "integer"
+          },
+          "status": {
+            "default": "CONFIRMED",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "room_id",
+          "guest_cpf",
+          "check_in",
+          "check_out"
+        ],
+        "title": "ReservationCreateRequest",
+        "type": "object"
+      },
+      "ReservationResponse": {
+        "description": "Representação serializada de uma reserva.",
+        "properties": {
+          "check_in": {
+            "description": "Data de check-in (inclusivo)",
+            "format": "date",
+            "title": "Check In",
+            "type": "string"
+          },
+          "check_out": {
+            "description": "Data de check-out (exclusivo)",
+            "format": "date",
+            "title": "Check Out",
+            "type": "string"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Usuário que criou a reserva (nulo nas antigas)",
+            "title": "Created By User Id"
+          },
+          "guest_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ID do hóspede",
+            "title": "Guest Id"
+          },
+          "guest_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nome do hóspede (sem CPF)",
+            "title": "Guest Name"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "room_id": {
+            "description": "ID do quarto reservado",
+            "title": "Room Id",
+            "type": "integer"
+          },
+          "status": {
+            "description": "Status da reserva (CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED)",
+            "title": "Status",
+            "type": "string"
+          },
+          "total_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Valor total da reserva em R$",
+            "title": "Total Price"
+          }
+        },
+        "required": [
+          "id",
+          "room_id",
+          "check_in",
+          "check_out",
+          "status"
+        ],
+        "title": "ReservationResponse",
+        "type": "object"
+      },
+      "RoomCategoryOption": {
+        "description": "Categoria para seleção em formulários (nome distinto do RoomCategoryResponse do domínio no OpenAPI).",
+        "properties": {
+          "base_rate": {
+            "title": "Base Rate",
+            "type": "number"
+          },
+          "capacity": {
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "capacity",
+          "base_rate"
+        ],
+        "title": "RoomCategoryOption",
+        "type": "object"
+      },
+      "RoomCategoryResponse": {
+        "description": "Representação serializada de uma categoria de quarto.",
+        "properties": {
+          "base_rate": {
+            "description": "Diária base em R$",
+            "title": "Base Rate",
+            "type": "number"
+          },
+          "capacity": {
+            "description": "Capacidade máxima de hóspedes",
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "has_ac": {
+            "description": "Possui ar-condicionado",
+            "title": "Has Ac",
+            "type": "boolean"
+          },
+          "has_breakfast": {
+            "description": "Café da manhã incluso",
+            "title": "Has Breakfast",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Nome da categoria (ex: STANDARD, LUXO)",
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "capacity",
+          "has_ac",
+          "has_breakfast",
+          "base_rate"
+        ],
+        "title": "RoomCategoryResponse",
+        "type": "object"
+      },
+      "RoomCreateRequest": {
+        "description": "Payload para a criação estrutural de um novo quarto.",
+        "properties": {
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Capacidade física (opcional)",
+            "title": "Capacity"
+          },
+          "category_id": {
+            "description": "ID da categoria associada a este quarto",
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "floor": {
+            "description": "Andar do quarto",
+            "examples": [
+              1
+            ],
+            "title": "Floor",
+            "type": "integer"
+          },
+          "number": {
+            "description": "Número/identificador do quarto",
+            "examples": [
+              "101"
+            ],
+            "title": "Number",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "floor",
+          "category_id"
+        ],
+        "title": "RoomCreateRequest",
+        "type": "object"
+      },
+      "RoomResponse": {
+        "description": "Representação serializada de um quarto com categoria aninhada.",
+        "properties": {
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Capacidade máxima (sobrescreve a categoria se presente)",
+            "title": "Capacity"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoomCategoryResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Categoria do quarto (eager-loaded)"
+          },
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "floor": {
+            "description": "Andar do quarto",
+            "title": "Floor",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "number": {
+            "description": "Número/identificador do quarto",
+            "examples": [
+              "101"
+            ],
+            "title": "Number",
+            "type": "string"
+          },
+          "status": {
+            "description": "Status operacional do quarto",
+            "enum": [
+              "AVAILABLE",
+              "OCCUPIED",
+              "CLEANING",
+              "MAINTENANCE",
+              "OUT_OF_SERVICE"
+            ],
+            "examples": [
+              "AVAILABLE",
+              "OCCUPIED",
+              "CLEANING",
+              "MAINTENANCE"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "floor",
+          "status",
+          "category_id"
+        ],
+        "title": "RoomResponse",
+        "type": "object"
+      },
+      "RoomStatusUpdateRequest": {
+        "description": "Payload para atualização de status de um quarto.",
+        "properties": {
+          "status": {
+            "description": "Novo status do quarto. Transições válidas são validadas pela camada de serviço.",
+            "enum": [
+              "AVAILABLE",
+              "OCCUPIED",
+              "CLEANING",
+              "MAINTENANCE",
+              "OUT_OF_SERVICE"
+            ],
+            "examples": [
+              "CLEANING"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "RoomStatusUpdateRequest",
+        "type": "object"
+      },
+      "RoomStatusUpdateResponse": {
+        "description": "Resposta após atualização de status bem-sucedida.",
+        "properties": {
+          "current_status": {
+            "description": "Novo status após atualização",
+            "title": "Current Status",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "string"
+          },
+          "previous_status": {
+            "description": "Status anterior à atualização",
+            "title": "Previous Status",
+            "type": "string"
+          },
+          "updated_by": {
+            "description": "E-mail do usuário que realizou a alteração",
+            "title": "Updated By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "previous_status",
+          "current_status",
+          "updated_by",
+          "message"
+        ],
+        "title": "RoomStatusUpdateResponse",
+        "type": "object"
+      },
+      "RoomUpdateRequest": {
+        "description": "Payload para atualização de metadados estruturais de um quarto.",
+        "properties": {
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Capacidade física (opcional)",
+            "title": "Capacity"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ID da categoria associada a este quarto",
+            "title": "Category Id"
+          },
+          "floor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Andar do quarto",
+            "examples": [
+              1
+            ],
+            "title": "Floor"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Número/identificador do quarto",
+            "examples": [
+              "101"
+            ],
+            "title": "Number"
+          }
+        },
+        "title": "RoomUpdateRequest",
+        "type": "object"
+      },
+      "TransactionCreateRequest": {
+        "description": "Payload para lançamento de uma transação financeira.",
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "description": "Valor da transação em R$ (precisão centesimal)",
+            "examples": [
+              "45.50"
+            ],
+            "title": "Amount"
+          },
+          "category": {
+            "description": "Categoria: DIARIA, FRIGOBAR, RESTAURANTE, LAVANDERIA, PAGAMENTO_ANTECIPADO, PAGAMENTO_CHECKOUT, OUTROS",
+            "examples": [
+              "FRIGOBAR"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "description": {
+            "description": "Descrição do lançamento",
+            "examples": [
+              "Consumo de minibar — Quarto 201"
+            ],
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "transaction_type": {
+            "description": "Tipo da transação: DEBIT, CREDIT",
+            "examples": [
+              "DEBIT"
+            ],
+            "title": "Transaction Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transaction_type",
+          "category",
+          "amount",
+          "description"
+        ],
+        "title": "TransactionCreateRequest",
+        "type": "object"
+      },
+      "TransactionResponse": {
+        "description": "Representação serializada de uma transação financeira.",
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "integer"
+          },
+          "amount": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_user_id": {
+            "title": "Created By User Id",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_refunded": {
+            "title": "Is Refunded",
+            "type": "boolean"
+          },
+          "original_transaction_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Transaction Id"
+          },
+          "refund_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Reason"
+          },
+          "transaction_type": {
+            "title": "Transaction Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "transaction_type",
+          "category",
+          "amount",
+          "description",
+          "created_by_user_id",
+          "is_refunded",
+          "created_at"
+        ],
+        "title": "TransactionResponse",
+        "type": "object"
+      },
+      "UserRegisterRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "minLength": 3,
+            "title": "Full Name",
+            "type": "string"
+          },
+          "password": {
+            "description": "Senha com mínimo de 8 caracteres",
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          },
+          "role": {
+            "default": "RECEPCIONISTA",
+            "description": "Cargo solicitado pelo funcionário (RECEPCIONISTA ou CAMAREIRA)",
+            "enum": [
+              "RECEPCIONISTA",
+              "CAMAREIRA"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "full_name"
+        ],
+        "title": "UserRegisterRequest",
+        "type": "object"
+      },
+      "UserRegisterResponse": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "message": {
+            "default": "Cadastro recebido com sucesso. Aguardando liberação do gestor.",
+            "title": "Message",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "full_name",
+          "role",
+          "status"
+        ],
+        "title": "UserRegisterResponse",
+        "type": "object"
+      },
+      "UserStatus": {
+        "enum": [
+          "PENDING_APPROVAL",
+          "APPROVED",
+          "REJECTED",
+          "SUSPENDED"
+        ],
+        "title": "UserStatus",
+        "type": "string"
+      },
+      "UserStatusUpdateRequest": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/UserStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "UserStatusUpdateRequest",
+        "type": "object"
+      },
+      "UserStatusUpdateResponse": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "full_name",
+          "status",
+          "message"
+        ],
+        "title": "UserStatusUpdateResponse",
+        "type": "object"
+      },
+      "UserSummary": {
+        "description": "Funcionário na listagem do IAM (T-39): sem senha nem hash.",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "full_name",
+          "role",
+          "status"
+        ],
+        "title": "UserSummary",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "/api/v1/auth/token"
+          }
+        },
+        "type": "oauth2"
+      }
+    }
+  },
+  "info": {
+    "title": "PDIR Backend - Renascente Hotel",
+    "version": "3.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Logout Api V1 Auth Logout Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Encerrar sessão",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "refresh_access_token_api_v1_auth_refresh_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Refresh Access Token Api V1 Auth Refresh Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Renovar Access Token",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "description": "Cria um funcionário com status PENDING_APPROVAL. O gestor deve aprovar antes do primeiro login.",
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRegisterResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Registrar novo funcionário",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/token": {
+      "post": {
+        "operationId": "login_for_access_token_api_v1_auth_token_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_for_access_token_api_v1_auth_token_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Login For Access Token Api V1 Auth Token Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Autenticar e obter tokens JWT",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/finance/accounts/reservation/{reservation_id}": {
+      "post": {
+        "description": "Abre (ou retorna) a conta financeira vinculada à reserva informada.",
+        "operationId": "open_account_api_v1_finance_accounts_reservation__reservation_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reservation_id",
+            "required": true,
+            "schema": {
+              "title": "Reservation Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Abrir conta financeira para uma reserva",
+        "tags": [
+          "Finance"
+        ]
+      }
+    },
+    "/api/v1/finance/accounts/{account_id}/close": {
+      "post": {
+        "description": "Encerra a conta financeira do hóspede.\n\nBloqueia o fechamento se houver saldo devedor em aberto (balance > 0).\nRegistra pagamento de checkout se payment_amount > 0.",
+        "operationId": "close_account_api_v1_finance_accounts__account_id__close_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountCloseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountCloseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Fechar conta e realizar checkout financeiro",
+        "tags": [
+          "Finance"
+        ]
+      }
+    },
+    "/api/v1/finance/accounts/{account_id}/statement": {
+      "get": {
+        "description": "Retorna o extrato detalhado com todas as transações em ordem cronológica.",
+        "operationId": "get_statement_api_v1_finance_accounts__account_id__statement_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountStatementResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Extrato completo da conta do hóspede",
+        "tags": [
+          "Finance"
+        ]
+      }
+    },
+    "/api/v1/finance/accounts/{account_id}/transactions": {
+      "post": {
+        "description": "Registra um débito (consumo) ou crédito (pagamento antecipado) na conta.",
+        "operationId": "add_transaction_api_v1_finance_accounts__account_id__transactions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "title": "Account Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Lançar transação financeira (débito ou crédito)",
+        "tags": [
+          "Finance"
+        ]
+      }
+    },
+    "/api/v1/finance/invoices": {
+      "get": {
+        "description": "Lista contas/faturas com filtro opcional por status de inadimplência.\n\nRetorna dados enriquecidos com nome do hóspede, número do quarto e vencimento.",
+        "operationId": "list_invoices_api_v1_finance_invoices_get",
+        "parameters": [
+          {
+            "description": "Filtrar por nível de risco: GREEN, YELLOW, ORANGE, RED",
+            "in": "query",
+            "name": "maturity_status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar por nível de risco: GREEN, YELLOW, ORANGE, RED",
+              "examples": [
+                "ORANGE"
+              ],
+              "title": "Maturity Status"
+            }
+          },
+          {
+            "description": "Número da página (1-indexed)",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Número da página (1-indexed)",
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Itens por página",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Itens por página",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceSummary"
+                  },
+                  "title": "Response List Invoices Api V1 Finance Invoices Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Listar faturas por nível de inadimplência",
+        "tags": [
+          "Finance"
+        ]
+      }
+    },
+    "/api/v1/finance/transactions/{transaction_id}/refund": {
+      "post": {
+        "description": "Gera uma contrapartida de estorno (REFUND) para a transação informada.\n\nA transação original é marcada como estornada mas não é deletada nem modificada.\nRequer justificativa textual obrigatória (mínimo 10 caracteres).\nExclusivo para o perfil DONO. GERENTE e RECEPCIONISTA recebem 403.",
+        "operationId": "refund_transaction_api_v1_finance_transactions__transaction_id__refund_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "transaction_id",
+            "required": true,
+            "schema": {
+              "title": "Transaction Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Estornar transação financeira (exclusivo DONO)",
+        "tags": [
+          "Finance"
+        ]
+      }
+    },
+    "/api/v1/guests/cpf/{cpf}": {
+      "get": {
+        "description": "Localiza um hóspede no sistema utilizando o CPF informado.",
+        "operationId": "get_guest_by_cpf_api_v1_guests_cpf__cpf__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cpf",
+            "required": true,
+            "schema": {
+              "title": "Cpf",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Buscar hóspede por CPF",
+        "tags": [
+          "Guests"
+        ]
+      }
+    },
+    "/api/v1/iam/users": {
+      "get": {
+        "description": "Ex.: `?status=PENDING_APPROVAL` para a fila de aprovação. Requer role DONO ou GERENTE.",
+        "operationId": "list_users_api_v1_iam_users_get",
+        "parameters": [
+          {
+            "description": "Filtrar pelo estado",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/UserStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar pelo estado",
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserSummary"
+                  },
+                  "title": "Response List Users Api V1 Iam Users Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Listar funcionários por estado de aprovação",
+        "tags": [
+          "IAM — Gestão de Usuários"
+        ]
+      }
+    },
+    "/api/v1/iam/users/{user_id}/status": {
+      "patch": {
+        "description": "Transições permitidas:\n- PENDING_APPROVAL → APPROVED | REJECTED\n- APPROVED → SUSPENDED\n- SUSPENDED → APPROVED\n\nQualquer outra transição responde 409 Conflict. Requer role DONO ou GERENTE.",
+        "operationId": "update_user_status_api_v1_iam_users__user_id__status_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserStatusUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatusUpdateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Atualizar estado de aprovação do funcionário",
+        "tags": [
+          "IAM — Gestão de Usuários"
+        ]
+      }
+    },
+    "/api/v1/integrations/sheets/status": {
+      "get": {
+        "description": "Painel da sincronização: último ciclo concluído, falhas recentes e tamanho da fila de retentativa (T-26).",
+        "operationId": "sheets_sync_status_api_v1_integrations_sheets_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Sheets Sync Status Api V1 Integrations Sheets Status Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Sheets Sync Status",
+        "tags": [
+          "Integrations"
+        ]
+      }
+    },
+    "/api/v1/integrations/sheets/sync": {
+      "post": {
+        "description": "Força a sincronização bidirecional imediata com o Google Sheets.\nA operação roda em background para não travar a UI (evitando timeout HTTP).",
+        "operationId": "force_sheets_synchronization_api_v1_integrations_sheets_sync_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Force Sheets Synchronization Api V1 Integrations Sheets Sync Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Force Sheets Synchronization",
+        "tags": [
+          "Integrations"
+        ]
+      }
+    },
+    "/api/v1/intelligence/chat": {
+      "post": {
+        "description": "Endpoint para conversar com o assistente virtual via Server-Sent Events (SSE).\n\nAcesso permitido para qualquer usuário autenticado (a autorização fina das\nferramentas é feita no escopo de cada ferramenta no motor cognitivo). Cada usuário\nsó acessa as próprias sessões: o session_id de outro usuário responde 404.\n\nO serviço já emite cada evento formatado (`data: {...}\\n\\n`), por isso a resposta\né um StreamingResponse com media type text/event-stream.",
+        "operationId": "chat_with_copilot_api_v1_intelligence_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Chat via SSE com o Copilot PDIR",
+        "tags": [
+          "Intelligence"
+        ]
+      }
+    },
+    "/api/v1/reservations": {
+      "get": {
+        "description": "Retorna a lista de reservas do sistema com suporte a filtros temporais e de status.",
+        "operationId": "list_reservations_api_v1_reservations_get",
+        "parameters": [
+          {
+            "description": "Data inicial do intervalo de filtro",
+            "in": "query",
+            "name": "start_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Data inicial do intervalo de filtro",
+              "title": "Start Date"
+            }
+          },
+          {
+            "description": "Data final do intervalo de filtro",
+            "in": "query",
+            "name": "end_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Data final do intervalo de filtro",
+              "title": "End Date"
+            }
+          },
+          {
+            "description": "Alias para data inicial de filtro",
+            "in": "query",
+            "name": "check_in",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Alias para data inicial de filtro",
+              "title": "Check In"
+            }
+          },
+          {
+            "description": "Alias para data final de filtro",
+            "in": "query",
+            "name": "check_out",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Alias para data final de filtro",
+              "title": "Check Out"
+            }
+          },
+          {
+            "description": "Filtrar por status específico",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "CONFIRMED",
+                    "CHECKED_IN",
+                    "CHECKED_OUT",
+                    "CANCELLED"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar por status específico",
+              "title": "Status"
+            }
+          },
+          {
+            "description": "Número da página (1-indexed)",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Número da página (1-indexed)",
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Resultados por página (máx. 200)",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "description": "Resultados por página (máx. 200)",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReservationResponse"
+                  },
+                  "title": "Response List Reservations Api V1 Reservations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Listar reservas",
+        "tags": [
+          "Reservations"
+        ]
+      },
+      "post": {
+        "description": "Cria uma nova reserva e registra quem a criou.",
+        "operationId": "create_reservation_api_v1_reservations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Create Reservation Api V1 Reservations Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Create Reservation",
+        "tags": [
+          "Reservations"
+        ]
+      }
+    },
+    "/api/v1/reservations/{reservation_id}/check-in": {
+      "post": {
+        "description": "Realiza o check-in de uma reserva.",
+        "operationId": "check_in_reservation_api_v1_reservations__reservation_id__check_in_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reservation_id",
+            "required": true,
+            "schema": {
+              "title": "Reservation Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Check In Reservation Api V1 Reservations  Reservation Id  Check In Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Check In Reservation",
+        "tags": [
+          "Reservations"
+        ]
+      }
+    },
+    "/api/v1/reservations/{reservation_id}/check-out": {
+      "post": {
+        "description": "Realiza o check-out de uma reserva.",
+        "operationId": "check_out_reservation_api_v1_reservations__reservation_id__check_out_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reservation_id",
+            "required": true,
+            "schema": {
+              "title": "Reservation Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Check Out Reservation Api V1 Reservations  Reservation Id  Check Out Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Check Out Reservation",
+        "tags": [
+          "Reservations"
+        ]
+      }
+    },
+    "/api/v1/rooms": {
+      "get": {
+        "description": "Retorna a lista de quartos com categoria aninhada. Suporta filtros por status e andar com paginação.",
+        "operationId": "list_rooms_api_v1_rooms_get",
+        "parameters": [
+          {
+            "description": "Filtrar pelo status (ex: AVAILABLE)",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "AVAILABLE",
+                    "OCCUPIED",
+                    "CLEANING",
+                    "MAINTENANCE",
+                    "OUT_OF_SERVICE"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar pelo status (ex: AVAILABLE)",
+              "title": "Status"
+            }
+          },
+          {
+            "description": "Filtrar pelo andar",
+            "in": "query",
+            "name": "floor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar pelo andar",
+              "title": "Floor"
+            }
+          },
+          {
+            "description": "Número da página (1-indexed)",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Número da página (1-indexed)",
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Resultados por página",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Resultados por página",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RoomResponse"
+                  },
+                  "title": "Response List Rooms Api V1 Rooms Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Listar quartos",
+        "tags": [
+          "Rooms"
+        ]
+      },
+      "post": {
+        "description": "Cria um novo quarto com número e categoria. O status inicial será sempre AVAILABLE. Requer role DONO ou GERENTE.",
+        "operationId": "create_room_api_v1_rooms_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Criar novo quarto",
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/api/v1/rooms/available": {
+      "get": {
+        "description": "Retorna os quartos disponíveis para um intervalo [check_in, check_out). Exclui quartos com reservas ativas conflitantes.",
+        "operationId": "list_available_rooms_api_v1_rooms_available_get",
+        "parameters": [
+          {
+            "description": "Data de check-in desejada (YYYY-MM-DD)",
+            "in": "query",
+            "name": "check_in",
+            "required": true,
+            "schema": {
+              "description": "Data de check-in desejada (YYYY-MM-DD)",
+              "format": "date",
+              "title": "Check In",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Data de check-out desejada (YYYY-MM-DD)",
+            "in": "query",
+            "name": "check_out",
+            "required": true,
+            "schema": {
+              "description": "Data de check-out desejada (YYYY-MM-DD)",
+              "format": "date",
+              "title": "Check Out",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RoomResponse"
+                  },
+                  "title": "Response List Available Rooms Api V1 Rooms Available Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Listar quartos disponíveis",
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/api/v1/rooms/categories": {
+      "get": {
+        "operationId": "list_room_categories_api_v1_rooms_categories_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RoomCategoryOption"
+                  },
+                  "title": "Response List Room Categories Api V1 Rooms Categories Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Listar categorias de quartos",
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/api/v1/rooms/events": {
+      "get": {
+        "description": "Abre um stream Server-Sent Events que emite eventos em tempo real sempre que o status de um quarto é alterado.\n\nO stream emite heartbeats a cada 15 segundos para manter a conexão ativa.\n\nRequer autenticação: Authorization Header ou ?ticket=<ticket> emitido por POST /rooms/events/ticket (uso único, 30 s). O JWT na URL não é aceito.\n\nAcessível para DONO, GERENTE e RECEPCIONISTA.",
+        "operationId": "room_events_stream_api_v1_rooms_events_get",
+        "parameters": [
+          {
+            "description": "Ticket de uso único emitido por POST /rooms/events/ticket (válido por 30 s)",
+            "in": "query",
+            "name": "ticket",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ticket de uso único emitido por POST /rooms/events/ticket (válido por 30 s)",
+              "title": "Ticket"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "example": "data: {...}\n\n"
+              }
+            },
+            "description": "Stream SSE ativo"
+          },
+          "401": {
+            "description": "Não autorizado — token ausente ou inválido"
+          },
+          "403": {
+            "description": "Proibido — role sem permissão para este endpoint"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stream SSE de eventos de quartos",
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/api/v1/rooms/events/ticket": {
+      "post": {
+        "description": "Emite um ticket opaco de uso único, válido por 30 segundos, para abrir GET /rooms/events?ticket=... com o EventSource (que não envia headers). Evita o JWT na URL. Acessível para DONO, GERENTE e RECEPCIONISTA.",
+        "operationId": "issue_room_events_ticket_api_v1_rooms_events_ticket_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "title": "Response Issue Room Events Ticket Api V1 Rooms Events Ticket Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Emitir ticket para o stream SSE",
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/api/v1/rooms/{room_id}": {
+      "put": {
+        "description": "Atualiza número, andar ou categoria do quarto. Não altera o status operacional. Requer role DONO ou GERENTE.",
+        "operationId": "update_room_metadata_api_v1_rooms__room_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Atualizar metadados do quarto",
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/api/v1/rooms/{room_id}/status": {
+      "patch": {
+        "description": "Aplica uma transição de status ao quarto indicado. Transições inválidas resultam em HTTP 409 Conflict.\n\nMáquina de estados:\n- AVAILABLE → OCCUPIED | CLEANING | MAINTENANCE | OUT_OF_SERVICE\n- OCCUPIED  → AVAILABLE | CLEANING | MAINTENANCE\n- CLEANING  → AVAILABLE | MAINTENANCE\n- MAINTENANCE → AVAILABLE | OUT_OF_SERVICE\n- OUT_OF_SERVICE → AVAILABLE | MAINTENANCE\n\nRequer role DONO, GERENTE, RECEPCIONISTA ou CAMAREIRA (com restrições).",
+        "operationId": "update_room_status_api_v1_rooms__room_id__status_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomStatusUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomStatusUpdateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Atualizar status de quarto",
+        "tags": [
+          "Rooms"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Endpoint legado/compatibilidade de saúde da aplicação.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Check Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Check",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/healthz": {
+      "get": {
+        "description": "Liveness probe: confirma que o processo FastAPI está ativo.",
+        "operationId": "liveness_probe_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Liveness Probe Healthz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness Probe",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/readyz": {
+      "get": {
+        "description": "Readiness probe: confirma que as dependências de infraestrutura (PostgreSQL e Redis) estão acessíveis.",
+        "operationId": "readiness_probe_readyz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Readiness Probe Readyz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Readiness Probe",
+        "tags": [
+          "Health"
+        ]
+      }
+    }
+  }
+}

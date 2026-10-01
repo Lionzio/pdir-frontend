@@ -18,13 +18,21 @@ describe('RoomMapComponent', () => {
       id: 1,
       number: '101',
       floor: 1,
+      category_id: 1,
       status: 'AVAILABLE',
       capacity: 2,
-      category: { id: 1, name: 'Standard' },
+      category: {
+        id: 1,
+        name: 'Standard',
+        capacity: 2,
+        has_ac: true,
+        has_breakfast: false,
+        base_rate: 150,
+      },
     },
-    { id: 2, number: '102', floor: 1, status: 'OCCUPIED', capacity: 3 },
-    { id: 3, number: '201', floor: 2, status: 'CLEANING', capacity: 1 },
-    { id: 4, number: '202', floor: 2, status: 'MAINTENANCE', capacity: 4 },
+    { id: 2, number: '102', floor: 1, category_id: 1, status: 'OCCUPIED', capacity: 3 },
+    { id: 3, number: '201', floor: 2, category_id: 1, status: 'CLEANING', capacity: 1 },
+    { id: 4, number: '202', floor: 2, category_id: 1, status: 'MAINTENANCE', capacity: 4 },
   ];
 
   beforeEach(async () => {

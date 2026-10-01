@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import {
   Room,
   RoomStatus,
+  RoomEvent,
   RoomStatusChangedEvent,
   RoomCreateRequest,
   RoomUpdateRequest,
@@ -136,10 +137,7 @@ export class RoomsService implements OnDestroy {
 
     this.eventSource.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data);
-        if (data.event_type === 'room_status_changed') {
-          this.handleStatusChanged(data);
-        }
+        this.handleEvent(JSON.parse(event.data) as RoomEvent);
       } catch (err) {
         console.error('Falha ao parsear mensagem SSE', err);
       }
@@ -155,6 +153,32 @@ export class RoomsService implements OnDestroy {
         this.scheduleReconnect();
       }
     };
+  }
+
+  /** Aplica um evento do stream ao mapa de quartos (T-35: inclui criação e renomeação). */
+  handleEvent(event: RoomEvent): void {
+    switch (event.event_type) {
+      case 'room_status_changed':
+        this.handleStatusChanged(event);
+        break;
+      case 'room_created':
+        // O evento não traz categoria nem capacidade: recarrega a lista para ter o quarto completo
+        if (!this._roomsMap().has(event.room_id)) this.loadRooms();
+        break;
+      case 'room_metadata_updated':
+        this.patchRoom(event.room_id, { number: event.new_number });
+        break;
+    }
+  }
+
+  private patchRoom(roomId: number, changes: Partial<Room>): void {
+    this._roomsMap.update((map) => {
+      const room = map.get(roomId);
+      if (!room) return map;
+      const newMap = new Map(map);
+      newMap.set(roomId, { ...room, ...changes });
+      return newMap;
+    });
   }
 
   private handleStatusChanged(event: RoomStatusChangedEvent): void {
