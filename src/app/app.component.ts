@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterOutlet } from '@angular/router';
 
 import { AuthSignalService } from './core/services/auth-signal.service';
@@ -11,7 +10,7 @@ import { ChatWidgetComponent } from './features/copilot/components/chat-widget.c
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, ChatWidgetComponent, MatButtonModule, MatIconModule, MatTooltipModule],
+  imports: [RouterOutlet, ChatWidgetComponent, MatButtonModule, MatIconModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
