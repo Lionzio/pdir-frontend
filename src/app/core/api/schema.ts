@@ -82,7 +82,13 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    /**
+     * Extrato da conta de uma reserva
+     * @description Extrato da conta vinculada à reserva (T-40: tela de check-in/check-out).
+     *
+     *     404 se a reserva ainda não tem conta (ela é aberta no check-in, T-22).
+     */
+    get: operations['get_statement_by_reservation_api_v1_finance_accounts_reservation__reservation_id__get'];
     put?: never;
     /**
      * Abrir conta financeira para uma reserva
@@ -879,6 +885,18 @@ export interface components {
       status: string;
     };
     /**
+     * ReservationLifecycleResponse
+     * @description Resposta do check-in e do check-out (tipada no OpenAPI para o frontend, T-40).
+     */
+    ReservationLifecycleResponse: {
+      /** Id */
+      id: number;
+      /** Room Id */
+      room_id: number;
+      /** Status */
+      status: string;
+    };
+    /**
      * ReservationResponse
      * @description Representação serializada de uma reserva.
      */
@@ -1382,6 +1400,37 @@ export interface operations {
       };
     };
   };
+  get_statement_by_reservation_api_v1_finance_accounts_reservation__reservation_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        reservation_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AccountStatementResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   open_account_api_v1_finance_accounts_reservation__reservation_id__post: {
     parameters: {
       query?: never;
@@ -1858,9 +1907,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
+          'application/json': components['schemas']['ReservationLifecycleResponse'];
         };
       };
       /** @description Validation Error */
@@ -1891,9 +1938,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
+          'application/json': components['schemas']['ReservationLifecycleResponse'];
         };
       };
       /** @description Validation Error */

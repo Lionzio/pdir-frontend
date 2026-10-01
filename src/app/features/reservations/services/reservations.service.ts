@@ -1,3 +1,4 @@
+import type { components } from '../../../core/api/schema';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -25,6 +26,9 @@ export interface Reservation {
   total_price: number | null;
 }
 
+/** Resposta do check-in e do check-out (ReservationLifecycleResponse no OpenAPI). */
+export type ReservationLifecycle = components['schemas']['ReservationLifecycleResponse'];
+
 @Injectable({
   providedIn: 'root',
 })
@@ -49,6 +53,16 @@ export class ReservationsService {
       check_out: toIsoDate(payload.check_out)!,
     };
     return this.http.post<Reservation>(this.apiUrl, formattedPayload);
+  }
+
+  /** Check-in: o backend abre a conta do hóspede na mesma transação (T-22). */
+  checkIn(reservationId: number): Observable<ReservationLifecycle> {
+    return this.http.post<ReservationLifecycle>(`${this.apiUrl}/${reservationId}/check-in`, {});
+  }
+
+  /** Check-out: 409 se a conta tiver saldo devedor (T-22). */
+  checkOut(reservationId: number): Observable<ReservationLifecycle> {
+    return this.http.post<ReservationLifecycle>(`${this.apiUrl}/${reservationId}/check-out`, {});
   }
 
   /**

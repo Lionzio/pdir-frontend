@@ -551,6 +551,30 @@
         "title": "ReservationCreateRequest",
         "type": "object"
       },
+      "ReservationLifecycleResponse": {
+        "description": "Resposta do check-in e do check-out (tipada no OpenAPI para o frontend, T-40).",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "room_id",
+          "status"
+        ],
+        "title": "ReservationLifecycleResponse",
+        "type": "object"
+      },
       "ReservationResponse": {
         "description": "Representação serializada de uma reserva.",
         "properties": {
@@ -1461,6 +1485,52 @@
       }
     },
     "/api/v1/finance/accounts/reservation/{reservation_id}": {
+      "get": {
+        "description": "Extrato da conta vinculada à reserva (T-40: tela de check-in/check-out).\n\n404 se a reserva ainda não tem conta (ela é aberta no check-in, T-22).",
+        "operationId": "get_statement_by_reservation_api_v1_finance_accounts_reservation__reservation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "reservation_id",
+            "required": true,
+            "schema": {
+              "title": "Reservation Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountStatementResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Extrato da conta de uma reserva",
+        "tags": [
+          "Finance"
+        ]
+      },
       "post": {
         "description": "Abre (ou retorna) a conta financeira vinculada à reserva informada.",
         "operationId": "open_account_api_v1_finance_accounts_reservation__reservation_id__post",
@@ -2353,9 +2423,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Check In Reservation Api V1 Reservations  Reservation Id  Check In Post",
-                  "type": "object"
+                  "$ref": "#/components/schemas/ReservationLifecycleResponse"
                 }
               }
             },
@@ -2403,9 +2471,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Check Out Reservation Api V1 Reservations  Reservation Id  Check Out Post",
-                  "type": "object"
+                  "$ref": "#/components/schemas/ReservationLifecycleResponse"
                 }
               }
             },

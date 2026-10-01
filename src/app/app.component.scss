@@ -3,10 +3,11 @@
   text-align: center;
 }
 
-// Botão de sair (T-38): fixo no canto superior direito, acima do conteúdo das telas
+// Botão de sair (T-38): canto inferior esquerdo. No superior direito cobria os botões de ação
+// dos cabeçalhos ("Nova Reserva", "Novo Quarto"); o inferior direito é do Copilot.
 .logout-button {
   position: fixed;
-  top: 12px;
-  right: 16px;
+  bottom: 16px;
+  left: 16px;
   z-index: 1000;
 }

@@ -38,6 +38,11 @@ export class FinanceService {
     );
   }
 
+  /** Extrato da conta de uma reserva; 404 se ainda não houve check-in (T-40). */
+  getStatementByReservation(reservationId: number): Observable<AccountStatement> {
+    return this.http.get<AccountStatement>(`${this.baseUrl}/accounts/reservation/${reservationId}`);
+  }
+
   /**
    * Retorna o extrato completo com todas as transações da conta.
    */
