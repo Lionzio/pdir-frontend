@@ -93,6 +93,7 @@ describe('ReservationsService', () => {
         id: 1,
         number: '101',
         floor: 1,
+        category_id: 1,
         status: 'AVAILABLE',
         capacity: 2,
       },

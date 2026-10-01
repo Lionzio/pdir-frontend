@@ -9,7 +9,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,html,scss}\"",
     "start": "ng serve",
     "test": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox",
-    "build": "ng build"
+    "build": "ng build",
+    "api:types": "npx --yes openapi-typescript@7.13.0 api/openapi.json -o src/app/core/api/schema.ts && prettier --write src/app/core/api/schema.ts"
   },
   "dependencies": {
     "@angular/animations": "^22.0.5",
