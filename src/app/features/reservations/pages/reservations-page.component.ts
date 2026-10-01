@@ -117,7 +117,7 @@ export class ReservationsPageComponent implements OnInit {
     return this._reservations().map((r) => ({
       id: r.id,
       roomId: r.room_id,
-      guestName: 'Hóspede #' + r.guest_id, // Mocked name mapping
+      guestName: r.guest_name?.trim() || 'Hóspede', // nome real vindo da API (T-33)
       checkIn: r.check_in,
       checkOut: r.check_out,
       status: r.status,
