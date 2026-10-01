@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { AuthStorageService } from '../../../core/services/auth-storage.service';
+import { CopilotEvent, SseParser } from './sse-parser';
 
 export interface ChatMessage {
   id: string;
@@ -7,6 +8,22 @@ export interface ChatMessage {
   content: string;
   isStreaming: boolean;
   toolCalls?: { name: string; status: 'running' | 'completed' | 'error' }[];
+}
+
+/** Mensagem exibida para cada falha HTTP do chat (o detalhe técnico não vai para a tela). */
+export function chatErrorMessage(status: number): string {
+  if (status === 401 || status === 403)
+    return 'Sua sessão expirou. Entre novamente para usar o Assistente.';
+  if (status === 422) return 'Mensagem inválida ou longa demais (máximo de 2000 caracteres).';
+  if (status === 429)
+    return 'Muitas mensagens em pouco tempo. Aguarde um instante e tente de novo.';
+  return 'O Assistente está indisponível no momento. Tente novamente em instantes.';
+}
+
+export class ChatHttpError extends Error {
+  constructor(readonly status: number) {
+    super(chatErrorMessage(status));
+  }
 }
 
 @Injectable({
@@ -52,10 +69,13 @@ export class CopilotService {
         }),
       });
 
+      // Status HTTP de erro não tem stream de eventos: falha com mensagem tratável (T-31)
+      if (!response.ok) throw new ChatHttpError(response.status);
       if (!response.body) throw new Error('No readable stream');
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      const parser = new SseParser();
 
       const assistantMsg: ChatMessage = {
         id: crypto.randomUUID(),
@@ -67,56 +87,46 @@ export class CopilotService {
 
       this.messages.update((m) => [...m, assistantMsg]);
 
+      const apply = (events: CopilotEvent[]) => {
+        for (const data of events) {
+          if (data.event === 'text_delta') {
+            assistantMsg.content += data.data ?? '';
+          } else if (data.event === 'tool_start' && data.name) {
+            assistantMsg.toolCalls?.push({ name: data.name, status: 'running' });
+          } else if (data.event === 'tool_end') {
+            const tc = assistantMsg.toolCalls?.find(
+              (t) => t.name === data.name && t.status === 'running',
+            );
+            if (tc) tc.status = 'completed';
+          } else if (data.event === 'error') {
+            assistantMsg.content += `\n[Erro: ${data.data ?? 'falha no Assistente'}]`;
+          } else if (data.event === 'message_complete') {
+            assistantMsg.isStreaming = false;
+          }
+        }
+        if (events.length > 0) {
+          // Nova referência para o signal notificar a view
+          this.messages.update((m) =>
+            m.map((x) => (x.id === assistantMsg.id ? { ...assistantMsg } : x)),
+          );
+        }
+      };
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\\n');
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.substring(6));
-
-              if (data.event === 'text_delta') {
-                assistantMsg.content += data.data;
-              } else if (data.event === 'tool_start') {
-                assistantMsg.toolCalls?.push({ name: data.name, status: 'running' });
-              } else if (data.event === 'tool_end') {
-                const tc = assistantMsg.toolCalls?.find(
-                  (t) => t.name === data.name && t.status === 'running',
-                );
-                if (tc) tc.status = 'completed';
-              } else if (data.event === 'error') {
-                assistantMsg.content += `\\n[Erro: ${data.data}]`;
-              } else if (data.event === 'message_complete') {
-                assistantMsg.isStreaming = false;
-              }
-
-              // Force trigger update for signals
-              this.messages.update((m) => {
-                const newArr = [...m];
-                const idx = newArr.findIndex((x) => x.id === assistantMsg.id);
-                if (idx >= 0) newArr[idx] = { ...assistantMsg };
-                return newArr;
-              });
-            } catch {
-              // Ignore malformed JSON chunks from splits
-            }
-          }
-        }
+        apply(parser.push(decoder.decode(value, { stream: true })));
       }
+      apply(parser.push(decoder.decode()));
+      apply(parser.flush());
     } catch (error) {
-      console.error('SSE Error:', error);
+      const content =
+        error instanceof ChatHttpError
+          ? error.message
+          : 'Ocorreu um erro de conexão com o Assistente.';
       this.messages.update((m) => [
         ...m,
-        {
-          id: crypto.randomUUID(),
-          role: 'system',
-          content: 'Ocorreu um erro de conexão com o Assistente.',
-          isStreaming: false,
-        },
+        { id: crypto.randomUUID(), role: 'system', content, isStreaming: false },
       ]);
     } finally {
       this.isTyping.set(false);

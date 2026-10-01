@@ -1,2 +1,4 @@
 <router-outlet></router-outlet>
-<app-chat-widget></app-chat-widget>
+@if (auth.isAuthenticated()) {
+  <app-chat-widget></app-chat-widget>
+}
