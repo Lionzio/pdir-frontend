@@ -86,4 +86,36 @@ describe('ReservationsPageComponent', () => {
     expect(timeline[2].number).toBe('3');
     expect(timeline[2].categoryName).toBe('Padrão');
   });
+
+  it('usa o nome real do hóspede na timeline, com fallback quando ausente (T-33)', () => {
+    mockReservationsService.listReservations.and.returnValue(
+      of([
+        {
+          id: 1,
+          room_id: 1,
+          guest_id: 9,
+          guest_name: 'Maria Fictícia',
+          check_in: '2099-01-01',
+          check_out: '2099-01-03',
+          status: 'CONFIRMED',
+          total_price: 200,
+        },
+        {
+          id: 2,
+          room_id: 1,
+          guest_id: null,
+          guest_name: null,
+          check_in: '2099-01-05',
+          check_out: '2099-01-06',
+          status: 'CONFIRMED',
+          total_price: 100,
+        },
+      ]),
+    );
+    component.loadReservations();
+
+    const names = component.timelineReservations().map((r) => r.guestName);
+    expect(names).toEqual(['Maria Fictícia', 'Hóspede']);
+    expect(names.join(' ')).not.toContain('#');
+  });
 });

@@ -17,6 +17,8 @@ export interface Reservation {
   id: number;
   room_id: number;
   guest_id: number | null;
+  /** Nome do hóspede (o backend nunca envia o CPF na listagem) — T-33 */
+  guest_name?: string | null;
   check_in: string; // ISO-8601 UTC
   check_out: string; // ISO-8601 UTC
   status: string;
