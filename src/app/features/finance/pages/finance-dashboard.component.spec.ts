@@ -95,6 +95,22 @@ describe('FinanceDashboardComponent · limites dos valores (os mesmos da API, T-
     expect(checkoutForm.get('payment_amount')!.valid).toBeTrue();
   });
 
+  it('valores com mais de 2 casas decimais são inválidos, como na API (T-90)', () => {
+    const { transactionForm, checkoutForm } = forms();
+    const amount = transactionForm.get('amount')!;
+    const payment = checkoutForm.get('payment_amount')!;
+
+    amount.setValue(10.005);
+    payment.setValue(0.001);
+    expect(amount.hasError('pattern')).toBeTrue();
+    expect(payment.hasError('pattern')).toBeTrue();
+
+    amount.setValue(10.5);
+    payment.setValue('0.00');
+    expect(amount.valid).toBeTrue();
+    expect(payment.valid).toBeTrue();
+  });
+
   it('descrição do lançamento tem no máximo 500 caracteres', () => {
     const description = forms().transactionForm.get('description')!;
 

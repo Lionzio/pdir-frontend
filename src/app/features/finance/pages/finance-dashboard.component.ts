@@ -260,6 +260,9 @@ type FilterOption = MaturityStatus | 'ALL';
                 @if (transactionForm.get('amount')?.hasError('max')) {
                   <mat-error>O valor máximo é R$ 99.999.999,99.</mat-error>
                 }
+                @if (transactionForm.get('amount')?.hasError('pattern')) {
+                  <mat-error>Use no máximo 2 casas decimais.</mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
@@ -383,6 +386,9 @@ type FilterOption = MaturityStatus | 'ALL';
                     />
                     @if (checkoutForm.get('payment_amount')?.hasError('max')) {
                       <mat-error>O valor máximo é R$ 99.999.999,99.</mat-error>
+                    }
+                    @if (checkoutForm.get('payment_amount')?.hasError('pattern')) {
+                      <mat-error>Use no máximo 2 casas decimais.</mat-error>
                     }
                   </mat-form-field>
 
@@ -744,19 +750,29 @@ export class FinanceDashboardComponent implements OnInit, OnDestroy {
   checkoutForm!: FormGroup;
   /** Mesmo limite da API (T-88): valores são Numeric(10, 2). */
   readonly maxMoney = 99999999.99;
+  /** No máximo 2 casas decimais, como a API (T-90); o input number entrega 10.5 para "10.50". */
+  private readonly twoDecimals = Validators.pattern(/^\d+(\.\d{1,2})?$/);
 
   ngOnInit(): void {
     this.transactionForm = this.fb.group({
       transaction_type: ['DEBIT', Validators.required],
       category: ['FRIGOBAR', Validators.required],
-      amount: ['', [Validators.required, Validators.min(0.01), Validators.max(this.maxMoney)]],
+      amount: [
+        '',
+        [
+          Validators.required,
+          Validators.min(0.01),
+          Validators.max(this.maxMoney),
+          this.twoDecimals,
+        ],
+      ],
       description: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(500)]],
     });
 
     this.checkoutForm = this.fb.group({
       payment_amount: [
         '0.00',
-        [Validators.required, Validators.min(0), Validators.max(this.maxMoney)],
+        [Validators.required, Validators.min(0), Validators.max(this.maxMoney), this.twoDecimals],
       ],
     });
 
