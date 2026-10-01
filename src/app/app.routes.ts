@@ -1,5 +1,10 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
+
+// Papéis por tela, como no backend (RoleChecker): gestão = DONO/GERENTE; operação inclui a recepção
+const MANAGEMENT = ['DONO', 'GERENTE'];
+const FRONT_DESK = ['DONO', 'GERENTE', 'RECEPCIONISTA'];
 
 export const routes: Routes = [
   {
@@ -15,13 +20,13 @@ export const routes: Routes = [
   },
   {
     path: 'admin/sync',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(MANAGEMENT)],
     loadComponent: () =>
       import('./features/admin/sync-panel/sync-panel.component').then((m) => m.SyncPanelComponent),
   },
   {
     path: 'admin/reservations',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(FRONT_DESK)],
     loadComponent: () =>
       import('./features/reservations/pages/reservations-page.component').then(
         (m) => m.ReservationsPageComponent,
@@ -29,7 +34,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin/reservations/new',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(FRONT_DESK)],
     loadComponent: () =>
       import('./features/reservations/new-stepper/new-reservation-stepper.component').then(
         (m) => m.NewReservationStepperComponent,
@@ -37,7 +42,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin/finance',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(MANAGEMENT)],
     loadComponent: () =>
       import('./features/finance/pages/finance-dashboard.component').then(
         (m) => m.FinanceDashboardComponent,

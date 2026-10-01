@@ -46,7 +46,7 @@ export interface RoomActionDialogData {
           <h3>Ações Disponíveis</h3>
 
           <div class="action-buttons">
-            <ng-container *appRbacAllow="['all', 'RECEPCIONISTA', 'CAMAREIRA']">
+            <ng-container *appRbacAllow="['DONO', 'GERENTE', 'RECEPCIONISTA', 'CAMAREIRA']">
               @if (room()!.status !== 'AVAILABLE' && canCamareiraMakeAvailable()) {
                 <button
                   mat-stroked-button
@@ -57,7 +57,7 @@ export interface RoomActionDialogData {
                   <mat-icon>check_circle</mat-icon> Disponibilizar (Check-out/Limpo)
                 </button>
               }
-              <ng-container *appRbacAllow="['all', 'RECEPCIONISTA']">
+              <ng-container *appRbacAllow="['DONO', 'GERENTE', 'RECEPCIONISTA']">
                 @if (room()!.status !== 'OCCUPIED') {
                   <button
                     mat-stroked-button
@@ -71,7 +71,7 @@ export interface RoomActionDialogData {
               </ng-container>
             </ng-container>
 
-            <ng-container *appRbacAllow="['all']">
+            <ng-container *appRbacAllow="['DONO', 'GERENTE']">
               @if (room()!.status !== 'CLEANING') {
                 <button
                   mat-stroked-button
@@ -244,8 +244,10 @@ export class RoomActionDialogComponent {
   }
 
   canCamareiraMakeAvailable(): boolean {
-    // Se for dono ou gerente (all) ou recepcionista, sempre pode.
-    if (this.authService.hasPermission('all') || this.authService.role() === 'RECEPCIONISTA') {
+    // Espelha o backend (RoomService.update_room_status): gestores e recepção sempre podem liberar.
+    // Antes dependia de hasPermission('all'), claim que o backend não emite (T-34).
+    const role = this.authService.role();
+    if (role === 'DONO' || role === 'GERENTE' || role === 'RECEPCIONISTA') {
       return true;
     }
     // Se for camareira, apenas se o status for CLEANING ou OCCUPIED.

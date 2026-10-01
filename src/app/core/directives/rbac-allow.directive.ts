@@ -16,7 +16,6 @@ export class RbacAllowDirective {
 
   @Input() set appRbacAllow(roles: string[]) {
     this.allowedRoles = roles;
-    console.log('SETTER CALLED WITH', roles);
     this.updateView();
   }
 
