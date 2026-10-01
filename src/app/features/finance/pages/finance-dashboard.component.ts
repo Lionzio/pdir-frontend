@@ -249,12 +249,22 @@ type FilterOption = MaturityStatus | 'ALL';
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Valor (R$)</mat-label>
-                <input matInput type="number" step="0.01" min="0.01" formControlName="amount" />
+                <input
+                  matInput
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  [max]="maxMoney"
+                  formControlName="amount"
+                />
+                @if (transactionForm.get('amount')?.hasError('max')) {
+                  <mat-error>O valor máximo é R$ 99.999.999,99.</mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Descrição</mat-label>
-                <input matInput formControlName="description" />
+                <input matInput formControlName="description" maxlength="500" />
               </mat-form-field>
 
               <div class="modal-actions">
@@ -368,8 +378,12 @@ type FilterOption = MaturityStatus | 'ALL';
                       type="number"
                       step="0.01"
                       min="0"
+                      [max]="maxMoney"
                       formControlName="payment_amount"
                     />
+                    @if (checkoutForm.get('payment_amount')?.hasError('max')) {
+                      <mat-error>O valor máximo é R$ 99.999.999,99.</mat-error>
+                    }
                   </mat-form-field>
 
                   <div class="checkout-preview">
@@ -728,17 +742,22 @@ export class FinanceDashboardComponent implements OnInit, OnDestroy {
   // Forms
   transactionForm!: FormGroup;
   checkoutForm!: FormGroup;
+  /** Mesmo limite da API (T-88): valores são Numeric(10, 2). */
+  readonly maxMoney = 99999999.99;
 
   ngOnInit(): void {
     this.transactionForm = this.fb.group({
       transaction_type: ['DEBIT', Validators.required],
       category: ['FRIGOBAR', Validators.required],
-      amount: ['', [Validators.required, Validators.min(0.01)]],
-      description: ['', [Validators.required, Validators.minLength(1)]],
+      amount: ['', [Validators.required, Validators.min(0.01), Validators.max(this.maxMoney)]],
+      description: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(500)]],
     });
 
     this.checkoutForm = this.fb.group({
-      payment_amount: ['0.00', [Validators.required, Validators.min(0)]],
+      payment_amount: [
+        '0.00',
+        [Validators.required, Validators.min(0), Validators.max(this.maxMoney)],
+      ],
     });
 
     this.loadInvoices();

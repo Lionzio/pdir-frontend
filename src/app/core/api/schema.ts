@@ -636,7 +636,7 @@ export interface components {
     AccountCloseRequest: {
       /**
        * Payment Amount
-       * @description Valor pago pelo hóspede no ato do checkout (pode ser 0 se já quitado)
+       * @description Valor pago pelo hóspede no ato do checkout (pode ser 0 se já quitado; até 99999999.99)
        * @default 0.00
        */
       payment_amount: number | string;
@@ -876,7 +876,10 @@ export interface components {
        * @description CPF do hóspede, com ou sem máscara; gravado só com os dígitos
        */
       guest_cpf: string;
-      /** Guest Full Name */
+      /**
+       * Guest Full Name
+       * @description Nome do hóspede (até 255 caracteres)
+       */
       guest_full_name?: string | null;
       /** Room Id */
       room_id: number;
@@ -1002,7 +1005,7 @@ export interface components {
     RoomCreateRequest: {
       /**
        * Capacity
-       * @description Capacidade física (opcional)
+       * @description Capacidade física (opcional, mínimo 1)
        */
       capacity?: number | null;
       /**
@@ -1012,13 +1015,13 @@ export interface components {
       category_id: number;
       /**
        * Floor
-       * @description Andar do quarto
+       * @description Andar do quarto (0 = térreo)
        * @example 1
        */
       floor: number;
       /**
        * Number
-       * @description Número/identificador do quarto
+       * @description Número/identificador do quarto (1 a 10 caracteres)
        * @example 101
        */
       number: string;
@@ -1108,7 +1111,7 @@ export interface components {
     RoomUpdateRequest: {
       /**
        * Capacity
-       * @description Capacidade física (opcional)
+       * @description Capacidade física (opcional, mínimo 1)
        */
       capacity?: number | null;
       /**
@@ -1118,13 +1121,13 @@ export interface components {
       category_id?: number | null;
       /**
        * Floor
-       * @description Andar do quarto
+       * @description Andar do quarto (0 = térreo)
        * @example 1
        */
       floor?: number | null;
       /**
        * Number
-       * @description Número/identificador do quarto
+       * @description Número/identificador do quarto (1 a 10 caracteres)
        * @example 101
        */
       number?: string | null;
@@ -1136,7 +1139,7 @@ export interface components {
     TransactionCreateRequest: {
       /**
        * Amount
-       * @description Valor da transação em R$ (precisão centesimal)
+       * @description Valor da transação em R$ (precisão centesimal, até 99999999.99)
        * @example 45.50
        */
       amount: number | string;
@@ -1197,7 +1200,10 @@ export interface components {
        * Format: email
        */
       email: string;
-      /** Full Name */
+      /**
+       * Full Name
+       * @description Nome completo (3 a 255 caracteres)
+       */
       full_name: string;
       /**
        * Password
@@ -1672,6 +1678,7 @@ export interface operations {
       query?: {
         /** @description Filtrar pelo estado */
         status?: components['schemas']['UserStatus'] | null;
+        /** @description Número da página (1-indexed) */
         page?: number;
         page_size?: number;
       };

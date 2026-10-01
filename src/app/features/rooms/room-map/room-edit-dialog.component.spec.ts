@@ -60,4 +60,28 @@ describe('RoomEditDialogComponent', () => {
     });
     expect(mockDialogRef.close).toHaveBeenCalledWith(true);
   });
+
+  describe('limites do número do quarto (os mesmos da API, T-88)', () => {
+    const numberErrors = (value: string) => {
+      const control = component.form.get('number')!;
+      control.setValue(value);
+      return control.errors;
+    };
+
+    it('recusa número só com espaços', () => {
+      expect(numberErrors('   ')).toEqual(
+        jasmine.objectContaining({ pattern: jasmine.anything() }),
+      );
+    });
+
+    it('recusa mais de 10 caracteres', () => {
+      expect(numberErrors('12345678901')).toEqual(
+        jasmine.objectContaining({ maxlength: jasmine.anything() }),
+      );
+    });
+
+    it('aceita exatamente 10 caracteres', () => {
+      expect(numberErrors('1234567890')).toBeNull();
+    });
+  });
 });

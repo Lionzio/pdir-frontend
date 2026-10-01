@@ -38,9 +38,14 @@ export interface RoomEditDialogData {
       <form [formGroup]="form" (ngSubmit)="save()" class="edit-form">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Número do Quarto</mat-label>
-          <input matInput formControlName="number" placeholder="Ex: 101" />
-          @if (form.get('number')?.hasError('required')) {
+          <input matInput formControlName="number" placeholder="Ex: 101" maxlength="10" />
+          @if (
+            form.get('number')?.hasError('required') || form.get('number')?.hasError('pattern')
+          ) {
             <mat-error>O número é obrigatório.</mat-error>
+          }
+          @if (form.get('number')?.hasError('maxlength')) {
+            <mat-error>O número tem no máximo 10 caracteres.</mat-error>
           }
         </mat-form-field>
 
@@ -131,7 +136,11 @@ export class RoomEditDialogComponent implements OnInit {
   availableCategories: RoomCategoryOption[] = [];
 
   form: FormGroup = this.fb.group({
-    number: [this.data?.room?.number || '', Validators.required],
+    // Mesmos limites da API (T-88): hospitality.rooms.number é String(10) e não aceita só espaços
+    number: [
+      this.data?.room?.number || '',
+      [Validators.required, Validators.maxLength(10), Validators.pattern(/\S/)],
+    ],
     floor: [this.data?.room?.floor ?? null, [Validators.required, Validators.min(0)]],
     category_id: [this.data?.room?.category?.id || null, Validators.required],
     capacity: [this.data?.room?.capacity ?? 1, [Validators.required, Validators.min(1)]],

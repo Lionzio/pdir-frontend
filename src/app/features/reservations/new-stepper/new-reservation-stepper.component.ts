@@ -114,6 +114,7 @@ import { Router, RouterModule } from '@angular/router';
                     matInput
                     formControlName="fullName"
                     id="guest-full-name"
+                    maxlength="255"
                     [errorStateMatcher]="nameErrorMatcher"
                   />
                   @if (guestFormGroup.hasError('guestNameRequired')) {
