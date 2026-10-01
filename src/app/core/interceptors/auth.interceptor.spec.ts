@@ -1,10 +1,16 @@
-﻿import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  provideHttpClient,
+  withInterceptors,
+} from '@angular/common/http';
 import { authInterceptor } from './auth.interceptor';
 import { AuthSignalService } from '../services/auth-signal.service';
 import { PLATFORM_ID } from '@angular/core';
 import { AuthStorageService } from '../services/auth-storage.service';
+import { Router } from '@angular/router';
 
 function createMockJwt(payload: Record<string, unknown>): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
@@ -230,5 +236,74 @@ describe('AuthInterceptor', () => {
 
     req1.flush({});
     req2.flush({});
+  });
+  // T-30 (H18): falha do próprio refresh não pode travar a aplicação
+  describe('falha no refresh', () => {
+    let router: Router;
+
+    beforeEach(() => {
+      router = TestBed.inject(Router);
+      spyOn(router, 'navigateByUrl').and.resolveTo(true);
+      authService.updateSession('expired-token', {
+        sub: 'antigo',
+        user_id: 1,
+        role: 'GERENTE',
+        permissions: [],
+      });
+    });
+
+    it('Cenário 8 - 401 no /auth/refresh limpa a sessão, vai para /login e devolve o erro', () => {
+      let status: number | undefined;
+      httpClient.get('/api/protected').subscribe({
+        error: (e: HttpErrorResponse) => (status = e.status),
+      });
+
+      httpMock
+        .expectOne('/api/protected')
+        .flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+      httpMock
+        .expectOne('/api/v1/auth/refresh')
+        .flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      expect(status).toBe(401);
+      expect(authService.isAuthenticated()).toBeFalse();
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/login');
+      httpMock.expectNone('/api/v1/auth/refresh');
+      httpMock.expectNone('/api/protected');
+    });
+
+    it('Cenário 9 - requisições simultâneas compartilham um único refresh e recebem o erro', () => {
+      const errors: number[] = [];
+      httpClient
+        .get('/api/a')
+        .subscribe({ error: (e: HttpErrorResponse) => errors.push(e.status) });
+      httpClient
+        .get('/api/b')
+        .subscribe({ error: (e: HttpErrorResponse) => errors.push(e.status) });
+
+      httpMock.expectOne('/api/a').flush('x', { status: 401, statusText: 'Unauthorized' });
+      httpMock.expectOne('/api/b').flush('x', { status: 401, statusText: 'Unauthorized' });
+      httpMock
+        .expectOne('/api/v1/auth/refresh')
+        .flush('x', { status: 401, statusText: 'Unauthorized' });
+
+      expect(errors).toEqual([401, 401]);
+      expect(router.navigateByUrl).toHaveBeenCalledTimes(1);
+    });
+
+    it('Cenário 10 - 401 no login não dispara refresh', () => {
+      let status: number | undefined;
+      httpClient.post('/api/v1/auth/token', {}).subscribe({
+        error: (e: HttpErrorResponse) => (status = e.status),
+      });
+
+      httpMock
+        .expectOne('/api/v1/auth/token')
+        .flush('Credenciais inválidas', { status: 401, statusText: 'Unauthorized' });
+
+      httpMock.expectNone('/api/v1/auth/refresh');
+      expect(status).toBe(401);
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+    });
   });
 });
