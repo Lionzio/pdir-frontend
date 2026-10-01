@@ -481,6 +481,8 @@ export interface paths {
      *
      *     O stream emite heartbeats a cada 15 segundos para manter a conexão ativa.
      *
+     *     Cada evento sai com `id:`. Na reconexão, envie o último id recebido no header Last-Event-ID (o EventSource faz isso sozinho) ou em ?last_event_id= para receber o que foi perdido (últimos ~500 eventos).
+     *
      *     Requer autenticação: Authorization Header ou ?ticket=<ticket> emitido por POST /rooms/events/ticket (uso único, 30 s). O JWT na URL não é aceito.
      *
      *     Acessível para DONO, GERENTE e RECEPCIONISTA.
@@ -2080,10 +2082,14 @@ export interface operations {
   room_events_stream_api_v1_rooms_events_get: {
     parameters: {
       query?: {
+        /** @description Último id recebido, para reconexões que não enviam o header Last-Event-ID. */
+        last_event_id?: string | null;
         /** @description Ticket de uso único emitido por POST /rooms/events/ticket (válido por 30 s) */
         ticket?: string | null;
       };
-      header?: never;
+      header?: {
+        'Last-Event-ID'?: string | null;
+      };
       path?: never;
       cookie?: never;
     };
@@ -2121,6 +2127,13 @@ export interface operations {
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
         };
+      };
+      /** @description Eventos em tempo real indisponíveis (Redis fora do ar) */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

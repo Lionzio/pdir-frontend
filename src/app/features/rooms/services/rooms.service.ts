@@ -39,6 +39,8 @@ export class RoomsService implements OnDestroy {
   private readonly maxBackoff = 30000;
   private isIntentionalDisconnect = false;
   private connecting = false;
+  // Id do último evento recebido: na reconexão, o backend reenvia o que veio depois dele (T-48)
+  private lastEventId: string | null = null;
 
   loadRooms(): void {
     this._loading.set(true);
@@ -116,7 +118,12 @@ export class RoomsService implements OnDestroy {
       next: ({ ticket }) => {
         this.connecting = false;
         if (this.isIntentionalDisconnect) return;
-        this.openEventSource(`${this.api}/rooms/events?ticket=${encodeURIComponent(ticket)}`);
+        const resume = this.lastEventId
+          ? `&last_event_id=${encodeURIComponent(this.lastEventId)}`
+          : '';
+        this.openEventSource(
+          `${this.api}/rooms/events?ticket=${encodeURIComponent(ticket)}${resume}`,
+        );
       },
       error: () => {
         this.connecting = false;
@@ -138,6 +145,7 @@ export class RoomsService implements OnDestroy {
     };
 
     this.eventSource.onmessage = (event) => {
+      if (event.lastEventId) this.lastEventId = event.lastEventId;
       try {
         this.handleEvent(JSON.parse(event.data) as RoomEvent);
       } catch (err) {
@@ -214,6 +222,7 @@ export class RoomsService implements OnDestroy {
   disconnect(): void {
     this.isIntentionalDisconnect = true;
     this._connected.set(false);
+    this.lastEventId = null;
 
     if (this.reconnectTimeoutId) {
       clearTimeout(this.reconnectTimeoutId);

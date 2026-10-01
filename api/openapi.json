@@ -2756,9 +2756,27 @@
     },
     "/api/v1/rooms/events": {
       "get": {
-        "description": "Abre um stream Server-Sent Events que emite eventos em tempo real sempre que o status de um quarto é alterado.\n\nO stream emite heartbeats a cada 15 segundos para manter a conexão ativa.\n\nRequer autenticação: Authorization Header ou ?ticket=<ticket> emitido por POST /rooms/events/ticket (uso único, 30 s). O JWT na URL não é aceito.\n\nAcessível para DONO, GERENTE e RECEPCIONISTA.",
+        "description": "Abre um stream Server-Sent Events que emite eventos em tempo real sempre que o status de um quarto é alterado.\n\nO stream emite heartbeats a cada 15 segundos para manter a conexão ativa.\n\nCada evento sai com `id:`. Na reconexão, envie o último id recebido no header Last-Event-ID (o EventSource faz isso sozinho) ou em ?last_event_id= para receber o que foi perdido (últimos ~500 eventos).\n\nRequer autenticação: Authorization Header ou ?ticket=<ticket> emitido por POST /rooms/events/ticket (uso único, 30 s). O JWT na URL não é aceito.\n\nAcessível para DONO, GERENTE e RECEPCIONISTA.",
         "operationId": "room_events_stream_api_v1_rooms_events_get",
         "parameters": [
+          {
+            "description": "Último id recebido, para reconexões que não enviam o header Last-Event-ID.",
+            "in": "query",
+            "name": "last_event_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Último id recebido, para reconexões que não enviam o header Last-Event-ID.",
+              "title": "Last Event Id"
+            }
+          },
           {
             "description": "Ticket de uso único emitido por POST /rooms/events/ticket (válido por 30 s)",
             "in": "query",
@@ -2775,6 +2793,22 @@
               ],
               "description": "Ticket de uso único emitido por POST /rooms/events/ticket (válido por 30 s)",
               "title": "Ticket"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Last-Event-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
             }
           }
         ],
@@ -2802,6 +2836,9 @@
               }
             },
             "description": "Validation Error"
+          },
+          "503": {
+            "description": "Eventos em tempo real indisponíveis (Redis fora do ar)"
           }
         },
         "summary": "Stream SSE de eventos de quartos",
