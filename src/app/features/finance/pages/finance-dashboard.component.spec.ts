@@ -71,3 +71,36 @@ describe('FinanceDashboardComponent · extrato', () => {
     expect(el.querySelector('button[aria-label="Estornar transação"]')).toBeNull();
   });
 });
+
+describe('FinanceDashboardComponent · limites dos valores (os mesmos da API, T-88)', () => {
+  // render() configura o módulo de teste; o fixture novo dá acesso direto aos formulários
+  const forms = () => {
+    render('GERENTE');
+    const fixture = TestBed.createComponent(FinanceDashboardComponent);
+    fixture.detectChanges();
+    return fixture.componentInstance;
+  };
+
+  it('lançamento e pagamento acima de R$ 99.999.999,99 são inválidos', () => {
+    const { transactionForm, checkoutForm } = forms();
+
+    transactionForm.get('amount')!.setValue('100000000.00');
+    checkoutForm.get('payment_amount')!.setValue('100000000.00');
+    expect(transactionForm.get('amount')!.hasError('max')).toBeTrue();
+    expect(checkoutForm.get('payment_amount')!.hasError('max')).toBeTrue();
+
+    transactionForm.get('amount')!.setValue('99999999.99');
+    checkoutForm.get('payment_amount')!.setValue('99999999.99');
+    expect(transactionForm.get('amount')!.valid).toBeTrue();
+    expect(checkoutForm.get('payment_amount')!.valid).toBeTrue();
+  });
+
+  it('descrição do lançamento tem no máximo 500 caracteres', () => {
+    const description = forms().transactionForm.get('description')!;
+
+    description.setValue('x'.repeat(501));
+    expect(description.hasError('maxlength')).toBeTrue();
+    description.setValue('x'.repeat(500));
+    expect(description.valid).toBeTrue();
+  });
+});

@@ -162,6 +162,7 @@ interface RegisterResponse {
                     name="full_name"
                     required
                     minlength="3"
+                    maxlength="255"
                     autocomplete="name"
                   />
                   <mat-icon matSuffix>person_outline</mat-icon>

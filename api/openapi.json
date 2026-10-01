@@ -7,6 +7,7 @@
           "payment_amount": {
             "anyOf": [
               {
+                "maximum": 99999999.99,
                 "minimum": 0.0,
                 "type": "number"
               },
@@ -16,7 +17,7 @@
               }
             ],
             "default": "0.00",
-            "description": "Valor pago pelo hóspede no ato do checkout (pode ser 0 se já quitado)",
+            "description": "Valor pago pelo hóspede no ato do checkout (pode ser 0 se já quitado; até 99999999.99)",
             "title": "Payment Amount"
           },
           "payment_description": {
@@ -524,15 +525,19 @@
           "guest_full_name": {
             "anyOf": [
               {
+                "maxLength": 255,
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
+            "description": "Nome do hóspede (até 255 caracteres)",
             "title": "Guest Full Name"
           },
           "room_id": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
             "title": "Room Id",
             "type": "integer"
           },
@@ -742,33 +747,41 @@
           "capacity": {
             "anyOf": [
               {
+                "maximum": 2147483647.0,
+                "minimum": 1.0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "Capacidade física (opcional)",
+            "description": "Capacidade física (opcional, mínimo 1)",
             "title": "Capacity"
           },
           "category_id": {
             "description": "ID da categoria associada a este quarto",
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
             "title": "Category Id",
             "type": "integer"
           },
           "floor": {
-            "description": "Andar do quarto",
+            "description": "Andar do quarto (0 = térreo)",
             "examples": [
               1
             ],
+            "maximum": 2147483647.0,
+            "minimum": 0.0,
             "title": "Floor",
             "type": "integer"
           },
           "number": {
-            "description": "Número/identificador do quarto",
+            "description": "Número/identificador do quarto (1 a 10 caracteres)",
             "examples": [
               "101"
             ],
+            "maxLength": 10,
+            "minLength": 1,
             "title": "Number",
             "type": "string"
           }
@@ -930,18 +943,22 @@
           "capacity": {
             "anyOf": [
               {
+                "maximum": 2147483647.0,
+                "minimum": 1.0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "Capacidade física (opcional)",
+            "description": "Capacidade física (opcional, mínimo 1)",
             "title": "Capacity"
           },
           "category_id": {
             "anyOf": [
               {
+                "maximum": 2147483647.0,
+                "minimum": 1.0,
                 "type": "integer"
               },
               {
@@ -954,13 +971,15 @@
           "floor": {
             "anyOf": [
               {
+                "maximum": 2147483647.0,
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "Andar do quarto",
+            "description": "Andar do quarto (0 = térreo)",
             "examples": [
               1
             ],
@@ -969,13 +988,15 @@
           "number": {
             "anyOf": [
               {
+                "maxLength": 10,
+                "minLength": 1,
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "Número/identificador do quarto",
+            "description": "Número/identificador do quarto (1 a 10 caracteres)",
             "examples": [
               "101"
             ],
@@ -992,6 +1013,7 @@
             "anyOf": [
               {
                 "exclusiveMinimum": 0.0,
+                "maximum": 99999999.99,
                 "type": "number"
               },
               {
@@ -999,7 +1021,7 @@
                 "type": "string"
               }
             ],
-            "description": "Valor da transação em R$ (precisão centesimal)",
+            "description": "Valor da transação em R$ (precisão centesimal, até 99999999.99)",
             "examples": [
               "45.50"
             ],
@@ -1127,6 +1149,8 @@
             "type": "string"
           },
           "full_name": {
+            "description": "Nome completo (3 a 255 caracteres)",
+            "maxLength": 255,
             "minLength": 3,
             "title": "Full Name",
             "type": "string"
@@ -1494,6 +1518,8 @@
             "name": "reservation_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Reservation Id",
               "type": "integer"
             }
@@ -1540,6 +1566,8 @@
             "name": "reservation_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Reservation Id",
               "type": "integer"
             }
@@ -1588,6 +1616,8 @@
             "name": "account_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Account Id",
               "type": "integer"
             }
@@ -1646,6 +1676,8 @@
             "name": "account_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Account Id",
               "type": "integer"
             }
@@ -1694,6 +1726,8 @@
             "name": "account_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Account Id",
               "type": "integer"
             }
@@ -1776,6 +1810,7 @@
             "schema": {
               "default": 1,
               "description": "Número da página (1-indexed)",
+              "maximum": 2147483647,
               "minimum": 1,
               "title": "Page",
               "type": "integer"
@@ -1843,6 +1878,8 @@
             "name": "transaction_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Transaction Id",
               "type": "integer"
             }
@@ -1963,11 +2000,14 @@
             }
           },
           {
+            "description": "Número da página (1-indexed)",
             "in": "query",
             "name": "page",
             "required": false,
             "schema": {
               "default": 1,
+              "description": "Número da página (1-indexed)",
+              "maximum": 2147483647,
               "minimum": 1,
               "title": "Page",
               "type": "integer"
@@ -2033,6 +2073,8 @@
             "name": "user_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "User Id",
               "type": "integer"
             }
@@ -2299,6 +2341,7 @@
             "schema": {
               "default": 1,
               "description": "Número da página (1-indexed)",
+              "maximum": 2147483647,
               "minimum": 1,
               "title": "Page",
               "type": "integer"
@@ -2413,6 +2456,8 @@
             "name": "reservation_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Reservation Id",
               "type": "integer"
             }
@@ -2461,6 +2506,8 @@
             "name": "reservation_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Reservation Id",
               "type": "integer"
             }
@@ -2537,6 +2584,8 @@
             "schema": {
               "anyOf": [
                 {
+                  "maximum": 2147483647,
+                  "minimum": 0,
                   "type": "integer"
                 },
                 {
@@ -2555,6 +2604,7 @@
             "schema": {
               "default": 1,
               "description": "Número da página (1-indexed)",
+              "maximum": 2147483647,
               "minimum": 1,
               "title": "Page",
               "type": "integer"
@@ -2895,6 +2945,8 @@
             "name": "room_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Room Id",
               "type": "integer"
             }
@@ -2953,6 +3005,8 @@
             "name": "room_id",
             "required": true,
             "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
               "title": "Room Id",
               "type": "integer"
             }
