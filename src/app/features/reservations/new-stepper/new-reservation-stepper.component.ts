@@ -34,6 +34,7 @@ import {
   takeUntil,
   tap,
   filter,
+  map,
 } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -93,11 +94,12 @@ import { Router, RouterModule } from '@angular/router';
               </mat-form-field>
             </div>
 
-            @if (foundGuest()) {
+            <!-- Resultado só depois da busca do CPF digitado: antes dela, nada de "não encontrado" -->
+            @if (lookupDone() && foundGuest()) {
               <div class="guest-card">
                 <strong>Hóspede Localizado:</strong> {{ foundGuest()?.full_name }}
               </div>
-            } @else if (guestFormGroup.get('cpf')?.valid && !isSearchingCpf()) {
+            } @else if (lookupDone()) {
               <div class="guest-card not-found">
                 <strong>Hóspede não encontrado.</strong>
                 <p>Informe o nome completo para cadastrá-lo com a reserva.</p>
@@ -105,13 +107,13 @@ import { Router, RouterModule } from '@angular/router';
               <div class="form-row">
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Nome completo</mat-label>
-                  <!-- Sem o atributo "required": a regra fica só no validador do grupo. O validador do
+                  <!-- Sem o atributo "required": o Validators.required do controle é ligado e desligado
+                       no código conforme a busca (o MatInput lê dele o asterisco e o aria-required). O
                        atributo deixava o controle preso como inválido quando o campo sumia (E2E FC4). -->
                   <input
                     matInput
                     formControlName="fullName"
                     id="guest-full-name"
-                    aria-required="true"
                     [errorStateMatcher]="nameErrorMatcher"
                   />
                   @if (guestFormGroup.hasError('guestNameRequired')) {
@@ -267,12 +269,25 @@ export class NewReservationStepperComponent implements OnInit, OnDestroy {
   // Signals para UI State
   isSearchingCpf = signal(false);
   foundGuest = signal<Guest | null>(null);
+  // CPF (só dígitos) cuja busca já terminou. O passo só libera depois da resposta para o CPF digitado:
+  // antes, a tela dizia "não encontrado" sem ter buscado, e um clique no "Próximo" no início da busca
+  // não avançava o passo (E2E smoke instável).
+  readonly searchedCpf = signal<string | null>(null);
+
+  /** A busca do CPF que está no campo já terminou? */
+  lookupDone(): boolean {
+    const cpf = onlyDigits(this.guestFormGroup.controls.cpf.value);
+    return !this.isSearchingCpf() && this.searchedCpf() === cpf;
+  }
 
   // Forms
   readonly today = startOfToday();
 
   // Hóspede novo precisa de nome: o backend gravava "Não Informado" (T-32)
   private guestNameValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+    const cpf = group.get('cpf');
+    if (!cpf || cpf.invalid) return null; // o próprio CPF já deixa o passo inválido
+    if (this.searchedCpf() !== onlyDigits(cpf.value)) return { cpfLookupPending: true };
     if (this.foundGuest()) return null;
     const name = (group.get('fullName')?.value ?? '').trim();
     return name.length >= 3 ? null : { guestNameRequired: true };
@@ -338,21 +353,25 @@ export class NewReservationStepperComponent implements OnInit, OnDestroy {
         tap(() => {
           this.isSearchingCpf.set(true);
           this.foundGuest.set(null);
+          this.guestFormGroup.updateValueAndValidity();
         }),
         // SwitchMap cancela a request anterior se uma nova chegar
         switchMap((cpf) =>
           this.guestService.checkGuestByCpf(cpf).pipe(
-            tap(() => this.isSearchingCpf.set(false)),
-            catchError(() => {
-              this.isSearchingCpf.set(false);
-              return of(null);
-            }),
+            map((guest) => ({ cpf, guest })),
+            catchError(() => of({ cpf, guest: null })),
           ),
         ),
       )
-      .subscribe((guest: Guest | null) => {
+      .subscribe(({ cpf, guest }) => {
         this.isSearchingCpf.set(false);
         this.foundGuest.set(guest);
+        this.searchedCpf.set(onlyDigits(cpf));
+        // Hóspede novo: nome obrigatório (asterisco e aria-required vêm do Validators.required)
+        const name = this.guestFormGroup.controls.fullName;
+        if (guest) name.removeValidators(Validators.required);
+        else name.addValidators(Validators.required);
+        name.updateValueAndValidity({ emitEvent: false });
         // O nome passa a ser exigido (ou não) conforme o hóspede exista
         this.guestFormGroup.updateValueAndValidity();
       });
