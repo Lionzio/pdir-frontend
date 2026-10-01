@@ -77,6 +77,13 @@ npm run api:types
 
 O `tsc` passa a acusar qualquer divergência entre o frontend e o contrato.
 
+`npm run api:check` (T-44) confere que `schema.ts` foi gerado do `api/openapi.json` atual e, com o caminho do contrato do
+backend (`npm run api:check -- ../pdir-backend/contracts/openapi.json`), que os dois são iguais. Na diferença, lista o que
+quebra o frontend (operação, schema ou campo removido, campo que virou obrigatório, tipo alterado). No CI, o workflow
+**Contrato da API** roda em todo PR, diariamente e sob demanda. A comparação com o backend precisa do secret
+`PDIR_BACKEND_READ_TOKEN`, um token com leitura de conteúdo em `Lionzio/pdir-backend`, porque o repositório é privado.
+Sem ele, só a consistência local é verificada.
+
 Antes de cada commit, o Husky roda o `lint-staged` (ESLint `--fix` + Prettier nos arquivos alterados).
 
 ## Configuração por ambiente

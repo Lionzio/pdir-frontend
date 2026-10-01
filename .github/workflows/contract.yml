@@ -1,0 +1,61 @@
+name: Contrato da API
+
+# T-44: os tipos do frontend (src/app/core/api/schema.ts) vêm do OpenAPI publicado pelo backend
+# (pdir-backend/contracts/openapi.json). Este workflow confere as duas pontas.
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  # Diário: pega mudanças de contrato mergeadas no backend mesmo sem PR novo no frontend
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Contrato da API (tipos gerados do OpenAPI)
+    runs-on: ubuntu-latest
+    env:
+      # O repositório do backend é privado: o GITHUB_TOKEN deste repositório não o lê.
+      # Com o secret PDIR_BACKEND_READ_TOKEN (token com leitura de conteúdo em Lionzio/pdir-backend),
+      # o job compara com o contrato da develop do backend; sem ele, confere só a consistência local.
+      HAS_BACKEND_TOKEN: ${{ secrets.PDIR_BACKEND_READ_TOKEN != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Contrato publicado pelo backend (develop)
+        if: env.HAS_BACKEND_TOKEN == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: Lionzio/pdir-backend
+          ref: develop
+          token: ${{ secrets.PDIR_BACKEND_READ_TOKEN }}
+          path: backend
+          sparse-checkout: contracts/openapi.json
+          sparse-checkout-cone-mode: false
+
+      - name: Conferir contrato
+        run: |
+          if [ "$HAS_BACKEND_TOKEN" = "true" ]; then
+            npm run api:check -- backend/contracts/openapi.json
+          else
+            echo "::notice title=Contrato da API::Sem o secret PDIR_BACKEND_READ_TOKEN, só a consistência local (schema.ts × api/openapi.json) foi verificada."
+            npm run api:check
+          fi
