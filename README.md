@@ -79,6 +79,21 @@ O `tsc` passa a acusar qualquer divergência entre o frontend e o contrato.
 
 Antes de cada commit, o Husky roda o `lint-staged` (ESLint `--fix` + Prettier nos arquivos alterados).
 
+## Configuração por ambiente
+
+A raiz da API vem de `src/environments/` (T-36) e chega aos serviços pelo token `API_BASE_URL`:
+
+| Arquivo                      | Usado em                   | `apiBaseUrl`                                                          |
+| ---------------------------- | -------------------------- | --------------------------------------------------------------------- |
+| `environment.development.ts` | `npm start` / `ng serve`   | `/api/v1` (o proxy encaminha para `127.0.0.1:8000`)                   |
+| `environment.ts`             | `npm run build` (produção) | `/api/v1` (frontend e API na mesma origem, atrás de um reverse proxy) |
+
+Para publicar com a API em outro host, troque `apiBaseUrl` em `environment.ts` pela URL absoluta (ex.:
+`https://api.hotel.example/api/v1`) ou crie uma configuração nova no `angular.json` com o seu
+`fileReplacements`. Do lado do backend, o host do frontend precisa estar em `CORS_ALLOWED_ORIGINS`, e os
+dois devem ser do **mesmo site** (ex.: `app.hotel.example` e `api.hotel.example`), porque o cookie do
+refresh token é `SameSite=Strict`.
+
 ## CI
 
 O [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em todo push para `main`/`develop` e em todo PR, com Node 22 e quatro jobs:

@@ -13,13 +13,14 @@ import type {
   Transaction,
   TransactionCreateRequest,
 } from '../models/finance.model';
+import { API_BASE_URL } from '../../../core/config/api.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FinanceService {
   private http = inject(HttpClient);
-  private readonly baseUrl = '/api/v1/finance';
+  private readonly baseUrl = `${inject(API_BASE_URL)}/finance`;
 
   /**
    * Abre (ou retorna) a conta financeira para a reserva informada.

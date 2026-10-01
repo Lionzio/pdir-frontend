@@ -10,8 +10,7 @@ import { Router } from '@angular/router';
 import { Observable, catchError, finalize, map, shareReplay, switchMap, throwError } from 'rxjs';
 
 import { AuthSignalService } from '../services/auth-signal.service';
-
-const REFRESH_URL = '/api/v1/auth/refresh';
+import { API_BASE_URL } from '../../core/config/api.config';
 
 // Rotas de autenticação nunca disparam refresh: um 401 nelas é a resposta final (T-30, H18).
 // Antes, um 401 no próprio /auth/refresh caía na fila de espera, que nunca emitia, e a tela travava.
@@ -26,13 +25,14 @@ function isAuthEndpoint(url: string): boolean {
 }
 
 function refreshAccessToken(
+  apiBaseUrl: string,
   http: HttpClient,
   authService: AuthSignalService,
   router: Router,
 ): Observable<string> {
   if (!refreshInFlight$) {
     refreshInFlight$ = http
-      .post<{ access_token: string }>(REFRESH_URL, {}, { withCredentials: true })
+      .post<{ access_token: string }>(`${apiBaseUrl}/auth/refresh`, {}, { withCredentials: true })
       .pipe(
         map((res) => {
           // Valida os claims mínimos necessários (TSK-003); não reconstrói sessão vazia/mockada
@@ -63,6 +63,7 @@ export const authInterceptor: HttpInterceptorFn = (
   const authService = inject(AuthSignalService);
   const http = inject(HttpClient);
   const router = inject(Router);
+  const apiBaseUrl = inject(API_BASE_URL);
   const token = authService.accessToken();
 
   const authReq = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
@@ -76,7 +77,7 @@ export const authInterceptor: HttpInterceptorFn = (
       ) {
         return throwError(() => error);
       }
-      return refreshAccessToken(http, authService, router).pipe(
+      return refreshAccessToken(apiBaseUrl, http, authService, router).pipe(
         switchMap((newToken) =>
           next(req.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } })),
         ),

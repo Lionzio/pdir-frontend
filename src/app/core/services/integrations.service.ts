@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../../core/config/api.config';
 
 export interface SyncResponse {
   status: string;
@@ -20,12 +21,13 @@ export interface SheetsSyncStatus {
 })
 export class IntegrationsService {
   private http = inject(HttpClient);
+  private readonly api = inject(API_BASE_URL);
 
   forceSheetsSync(): Observable<SyncResponse> {
-    return this.http.post<SyncResponse>('/api/v1/integrations/sheets/sync', {});
+    return this.http.post<SyncResponse>(`${this.api}/integrations/sheets/sync`, {});
   }
 
   getSheetsStatus(): Observable<SheetsSyncStatus> {
-    return this.http.get<SheetsSyncStatus>('/api/v1/integrations/sheets/status');
+    return this.http.get<SheetsSyncStatus>(`${this.api}/integrations/sheets/status`);
   }
 }

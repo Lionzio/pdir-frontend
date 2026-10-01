@@ -2,6 +2,7 @@ import { Injectable, OnDestroy, PLATFORM_ID, computed, inject, signal } from '@a
 import { isPlatformBrowser } from '@angular/common';
 import { HttpBackend, HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { API_BASE_URL } from '../../core/config/api.config';
 
 export interface AuthState {
   accessToken: string | null;
@@ -26,7 +27,6 @@ const EMPTY_STATE: AuthState = {
   permissions: [],
 };
 
-const REFRESH_URL = '/api/v1/auth/refresh';
 const LOGOUT_CHANNEL = 'pdir-auth';
 
 /**
@@ -41,6 +41,7 @@ const LOGOUT_CHANNEL = 'pdir-auth';
 })
 export class AuthSignalService implements OnDestroy {
   private platformId = inject(PLATFORM_ID);
+  private readonly api = inject(API_BASE_URL);
   // Cliente sem interceptors: a restauração da sessão não pode disparar o refresh do interceptor
   private rawHttp = new HttpClient(inject(HttpBackend));
   private channel: BroadcastChannel | null = null;
@@ -73,7 +74,11 @@ export class AuthSignalService implements OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     try {
       const res = await firstValueFrom(
-        this.rawHttp.post<{ access_token: string }>(REFRESH_URL, {}, { withCredentials: true }),
+        this.rawHttp.post<{ access_token: string }>(
+          `${this.api}/auth/refresh`,
+          {},
+          { withCredentials: true },
+        ),
       );
       if (!this.applyAccessToken(res.access_token)) this.state.set(EMPTY_STATE);
     } catch {
