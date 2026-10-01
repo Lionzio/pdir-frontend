@@ -7,7 +7,14 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -31,6 +38,8 @@ import {
 import { of } from 'rxjs';
 
 import { GuestService, Guest } from '../../../core/services/guest.service';
+import { cpfValidator, onlyDigits } from '../../../core/utils/cpf';
+import { startOfToday } from '../../../core/utils/date.utils';
 import { ReservationsService } from '../services/reservations.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterModule } from '@angular/router';
@@ -91,8 +100,20 @@ import { Router, RouterModule } from '@angular/router';
             } @else if (guestFormGroup.get('cpf')?.valid && !isSearchingCpf()) {
               <div class="guest-card not-found">
                 <strong>Hóspede não encontrado.</strong>
-                <p>Será necessário realizar o cadastro completo no check-in.</p>
+                <p>Informe o nome completo para cadastrá-lo com a reserva.</p>
               </div>
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Nome completo</mat-label>
+                  <input matInput formControlName="fullName" id="guest-full-name" required />
+                  @if (guestFormGroup.hasError('guestNameRequired')) {
+                    <mat-error>Informe o nome completo (mínimo de 3 letras).</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            }
+            @if (guestFormGroup.get('cpf')?.hasError('cpf')) {
+              <p class="field-error" role="alert">CPF inválido.</p>
             }
 
             <div class="actions">
@@ -116,7 +137,13 @@ import { Router, RouterModule } from '@angular/router';
             <div class="form-row dates-row">
               <mat-form-field appearance="outline">
                 <mat-label>Check-in</mat-label>
-                <input matInput [matDatepicker]="pickerIn" formControlName="checkIn" required />
+                <input
+                  matInput
+                  [matDatepicker]="pickerIn"
+                  [min]="today"
+                  formControlName="checkIn"
+                  required
+                />
                 <mat-hint>MM/DD/YYYY</mat-hint>
                 <mat-datepicker-toggle matIconSuffix [for]="pickerIn"></mat-datepicker-toggle>
                 <mat-datepicker #pickerIn></mat-datepicker>
@@ -124,12 +151,25 @@ import { Router, RouterModule } from '@angular/router';
 
               <mat-form-field appearance="outline">
                 <mat-label>Check-out</mat-label>
-                <input matInput [matDatepicker]="pickerOut" formControlName="checkOut" required />
+                <input
+                  matInput
+                  [matDatepicker]="pickerOut"
+                  [min]="minCheckOut()"
+                  formControlName="checkOut"
+                  required
+                />
                 <mat-hint>MM/DD/YYYY</mat-hint>
                 <mat-datepicker-toggle matIconSuffix [for]="pickerOut"></mat-datepicker-toggle>
                 <mat-datepicker #pickerOut></mat-datepicker>
               </mat-form-field>
             </div>
+
+            @if (reservationFormGroup.hasError('checkInPast')) {
+              <p class="field-error" role="alert">O check-in não pode ser no passado.</p>
+            }
+            @if (reservationFormGroup.hasError('checkOutBeforeCheckIn')) {
+              <p class="field-error" role="alert">O check-out deve ser depois do check-in.</p>
+            }
 
             <div class="form-row">
               <mat-form-field appearance="outline" class="w-full">
@@ -190,6 +230,10 @@ import { Router, RouterModule } from '@angular/router';
         border-radius: 4px;
         margin-bottom: 16px;
       }
+      .field-error {
+        color: #b91c1c;
+        margin: 0 0 8px;
+      }
       .guest-card.not-found {
         background: var(--color-maintenance-bg, #fef3c7);
         border-color: var(--color-maintenance, #92400e);
@@ -217,15 +261,45 @@ export class NewReservationStepperComponent implements OnInit, OnDestroy {
   foundGuest = signal<Guest | null>(null);
 
   // Forms
-  guestFormGroup = this.fb.nonNullable.group({
-    cpf: ['', [Validators.required, Validators.minLength(11)]],
-  });
+  readonly today = startOfToday();
 
-  reservationFormGroup = this.fb.nonNullable.group({
-    checkIn: [null as Date | null, Validators.required],
-    checkOut: [null as Date | null, Validators.required],
-    roomId: [null as number | null, Validators.required],
-  });
+  // Hóspede novo precisa de nome: o backend gravava "Não Informado" (T-32)
+  private guestNameValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+    if (this.foundGuest()) return null;
+    const name = (group.get('fullName')?.value ?? '').trim();
+    return name.length >= 3 ? null : { guestNameRequired: true };
+  };
+
+  private dateRangeValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+    const checkIn = group.get('checkIn')?.value as Date | null;
+    const checkOut = group.get('checkOut')?.value as Date | null;
+    if (checkIn && checkIn < this.today) return { checkInPast: true };
+    if (checkIn && checkOut && checkOut <= checkIn) return { checkOutBeforeCheckIn: true };
+    return null;
+  };
+
+  guestFormGroup = this.fb.nonNullable.group(
+    {
+      cpf: ['', [Validators.required, cpfValidator]],
+      fullName: [''],
+    },
+    { validators: this.guestNameValidator },
+  );
+
+  reservationFormGroup = this.fb.nonNullable.group(
+    {
+      checkIn: [null as Date | null, Validators.required],
+      checkOut: [null as Date | null, Validators.required],
+      roomId: [null as number | null, Validators.required],
+    },
+    { validators: this.dateRangeValidator },
+  );
+
+  minCheckOut(): Date {
+    const checkIn = this.reservationFormGroup.get('checkIn')?.value;
+    const base = checkIn ?? this.today;
+    return new Date(base.getFullYear(), base.getMonth(), base.getDate() + 1);
+  }
 
   ngOnInit() {
     this.setupCpfSearch();
@@ -265,6 +339,8 @@ export class NewReservationStepperComponent implements OnInit, OnDestroy {
       .subscribe((guest: Guest | null) => {
         this.isSearchingCpf.set(false);
         this.foundGuest.set(guest);
+        // O nome passa a ser exigido (ou não) conforme o hóspede exista
+        this.guestFormGroup.updateValueAndValidity();
       });
   }
 
@@ -276,13 +352,13 @@ export class NewReservationStepperComponent implements OnInit, OnDestroy {
     }
 
     const { checkIn, checkOut, roomId } = this.reservationFormGroup.getRawValue();
-    const guestCpf = this.guestFormGroup.get('cpf')?.value || '';
+    const { cpf, fullName } = this.guestFormGroup.getRawValue();
     const guest = this.foundGuest();
 
     const payload = {
       room_id: Number(roomId),
-      guest_cpf: guest ? guest.cpf : guestCpf,
-      guest_full_name: guest ? guest.full_name : 'Não Informado',
+      guest_cpf: onlyDigits(guest ? guest.cpf : cpf),
+      guest_full_name: guest ? guest.full_name : fullName.trim(),
       check_in: checkIn as Date,
       check_out: checkOut as Date,
       status: 'CONFIRMED',
@@ -304,6 +380,8 @@ export class NewReservationStepperComponent implements OnInit, OnDestroy {
             'Fechar',
             { duration: 5000 },
           );
+        } else if (err.status === 422 || err.status === 400) {
+          this.snackBar.open(validationMessage(err.error), 'Fechar', { duration: 5000 });
         } else {
           this.snackBar.open('Erro ao criar reserva. Tente novamente.', 'Fechar', {
             duration: 3000,
@@ -312,4 +390,15 @@ export class NewReservationStepperComponent implements OnInit, OnDestroy {
       },
     });
   }
+}
+
+/** Mensagem do 400/422 do backend (detail em texto ou lista do Pydantic), sem detalhes técnicos. */
+export function validationMessage(error: unknown): string {
+  const detail = (error as { detail?: unknown } | null)?.detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail) && detail.length > 0) {
+    const msg = String((detail[0] as { msg?: string }).msg ?? '');
+    return msg.replace(/^Value error, /, '') || 'Dados da reserva inválidos.';
+  }
+  return 'Dados da reserva inválidos.';
 }

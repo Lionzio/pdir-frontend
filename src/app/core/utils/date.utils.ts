@@ -29,3 +29,22 @@ export function toUtcIso8601(date: Date | string | null | undefined): string | n
 
   return utcDate.toISOString();
 }
+
+/**
+ * Data local no formato do contrato da API para datas sem hora: YYYY-MM-DD (T-32).
+ * Usa o dia do calendário local, sem conversão de fuso.
+ */
+export function toIsoDate(date: Date | string | null | undefined): string | null {
+  if (!date) return null;
+  const parsed = new Date(date);
+  if (isNaN(parsed.getTime())) return null;
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const day = String(parsed.getDate()).padStart(2, '0');
+  return `${parsed.getFullYear()}-${month}-${day}`;
+}
+
+/** Hoje à meia-noite local (base para a data mínima dos datepickers). */
+export function startOfToday(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}

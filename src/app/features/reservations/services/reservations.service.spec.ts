@@ -51,6 +51,9 @@ describe('ReservationsService', () => {
 
     const req = httpTestingController.expectOne('/api/v1/reservations');
     expect(req.request.method).toBe('POST');
+    // T-32: datas sem hora, no dia local, e CPF só com dígitos
+    expect(req.request.body.check_in).toBe('2026-09-01');
+    expect(req.request.body.check_out).toBe('2026-09-05');
     req.flush(mockRes);
   });
 
