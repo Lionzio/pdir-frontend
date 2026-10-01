@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AuthSignalService } from '../../../core/services/auth-signal.service';
+import { API_BASE_URL } from '../../../core/config/api.config';
 
 // ---------------------------------------------------------------------------
 // Interfaces locais
@@ -412,6 +413,7 @@ export class LoginComponent {
   private http = inject(HttpClient);
   private router = inject(Router);
   private authService = inject(AuthSignalService);
+  private readonly api = inject(API_BASE_URL);
 
   // ── Estado das abas ──
   activeTabIndex = signal(0);
@@ -458,8 +460,10 @@ export class LoginComponent {
     body.set('password', this.loginPassword);
 
     this.http
-      .post<TokenResponse>('/api/v1/auth/token', body.toString(), {
+      .post<TokenResponse>(`${this.api}/auth/token`, body.toString(), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        // A resposta grava o cookie HttpOnly do refresh: precisa de credenciais se a API for outra origem
+        withCredentials: true,
       })
       .subscribe({
         next: (res) => {
@@ -499,7 +503,7 @@ export class LoginComponent {
     this.successMessage.set('');
 
     this.http
-      .post<RegisterResponse>('/api/v1/auth/register', {
+      .post<RegisterResponse>(`${this.api}/auth/register`, {
         email: this.regEmail,
         password: this.regPassword,
         full_name: this.regFullName,

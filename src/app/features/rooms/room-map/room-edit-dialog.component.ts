@@ -12,6 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { RoomsService } from '../services/rooms.service';
 import { Room, RoomCategoryOption } from '../models/room.model';
+import { API_BASE_URL } from '../../../core/config/api.config';
 
 export interface RoomEditDialogData {
   room?: Room; // Se definido, modo de edição. Senão, modo de criação.
@@ -122,6 +123,7 @@ export class RoomEditDialogComponent implements OnInit {
   private roomsService = inject(RoomsService);
   private snackBar = inject(MatSnackBar);
   private http = inject(HttpClient);
+  private readonly api = inject(API_BASE_URL);
 
   isSaving = signal(false);
   isEditMode = !!this.data?.room;
@@ -136,7 +138,7 @@ export class RoomEditDialogComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.http.get<RoomCategoryOption[]>('/api/v1/rooms/categories').subscribe({
+    this.http.get<RoomCategoryOption[]>(`${this.api}/rooms/categories`).subscribe({
       next: (cats) => {
         this.availableCategories = cats;
       },

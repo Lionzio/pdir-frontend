@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../../core/config/api.config';
 
 export type UserStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
 
@@ -16,7 +17,7 @@ export interface UserSummary {
 @Injectable({ providedIn: 'root' })
 export class IamService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/v1/iam/users';
+  private apiUrl = `${inject(API_BASE_URL)}/iam/users`;
 
   listByStatus(status: UserStatus): Observable<UserSummary[]> {
     const params = new HttpParams().set('status', status).set('page_size', 200);

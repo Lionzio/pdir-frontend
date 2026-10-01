@@ -1,6 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { AuthSignalService } from '../../../core/services/auth-signal.service';
 import { CopilotEvent, SseParser } from './sse-parser';
+import { API_BASE_URL } from '../../../core/config/api.config';
 
 export interface ChatMessage {
   id: string;
@@ -35,6 +36,7 @@ export class CopilotService {
   public isVisible = signal<boolean>(false);
   private sessionId = crypto.randomUUID();
   private auth = inject(AuthSignalService);
+  private readonly api = inject(API_BASE_URL);
 
   toggleVisibility() {
     this.isVisible.update((v) => !v);
@@ -57,7 +59,7 @@ export class CopilotService {
     try {
       // Token só em memória (T-19); o fetch não passa pelo interceptor do HttpClient
       const token = this.auth.accessToken() ?? '';
-      const response = await fetch('/api/v1/intelligence/chat', {
+      const response = await fetch(`${this.api}/intelligence/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { API_BASE_URL } from '../../core/config/api.config';
 
 export interface Guest {
   id: number;
@@ -16,7 +17,7 @@ export interface Guest {
 })
 export class GuestService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/v1/guests';
+  private apiUrl = `${inject(API_BASE_URL)}/guests`;
 
   /**
    * Busca um hóspede pelo CPF no PostgreSQL via API.

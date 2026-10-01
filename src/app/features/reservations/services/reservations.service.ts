@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Room } from '../../rooms/models/room.model';
 import { toIsoDate, toUtcIso8601 } from '../../../core/utils/date.utils';
+import { API_BASE_URL } from '../../../core/config/api.config';
 
 export interface ReservationCreateRequest {
   room_id: number;
@@ -34,7 +35,8 @@ export type ReservationLifecycle = components['schemas']['ReservationLifecycleRe
 })
 export class ReservationsService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/v1/reservations';
+  private api = inject(API_BASE_URL);
+  private apiUrl = `${this.api}/reservations`;
 
   /**
    * Cria uma reserva enviando os dados pro backend real.
@@ -100,6 +102,6 @@ export class ReservationsService {
       params = params.set('check_out', isoOut.split('T')[0]);
     }
 
-    return this.http.get<Room[]>('/api/v1/rooms/available', { params });
+    return this.http.get<Room[]>(`${this.api}/rooms/available`, { params });
   }
 }

@@ -10,12 +10,14 @@ import {
   RoomUpdateRequest,
 } from '../models/room.model';
 import { AuthSignalService } from '../../../core/services/auth-signal.service';
+import { API_BASE_URL } from '../../../core/config/api.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RoomsService implements OnDestroy {
   private http = inject(HttpClient);
+  private readonly api = inject(API_BASE_URL);
   private authService = inject(AuthSignalService);
 
   // State Signals
@@ -42,7 +44,7 @@ export class RoomsService implements OnDestroy {
     this._loading.set(true);
     this._error.set(null);
 
-    this.http.get<Room[]>('/api/v1/rooms').subscribe({
+    this.http.get<Room[]>(`${this.api}/rooms`).subscribe({
       next: (data) => {
         const map = new Map<number, Room>();
         data.forEach((room) => map.set(room.id, room));
@@ -57,12 +59,12 @@ export class RoomsService implements OnDestroy {
   }
 
   updateRoomStatus(roomId: number, status: RoomStatus): Observable<Room> {
-    return this.http.patch<Room>(`/api/v1/rooms/${roomId}/status`, { status });
+    return this.http.patch<Room>(`${this.api}/rooms/${roomId}/status`, { status });
   }
 
   createRoom(payload: RoomCreateRequest): Observable<Room> {
     return new Observable<Room>((observer) => {
-      this.http.post<Room>('/api/v1/rooms', payload).subscribe({
+      this.http.post<Room>(`${this.api}/rooms`, payload).subscribe({
         next: (newRoom) => {
           this._roomsMap.update((map) => {
             const newMap = new Map(map);
@@ -79,7 +81,7 @@ export class RoomsService implements OnDestroy {
 
   updateRoomMetadata(roomId: number, payload: RoomUpdateRequest): Observable<Room> {
     return new Observable<Room>((observer) => {
-      this.http.put<Room>(`/api/v1/rooms/${roomId}`, payload).subscribe({
+      this.http.put<Room>(`${this.api}/rooms/${roomId}`, payload).subscribe({
         next: (updatedRoom) => {
           this._roomsMap.update((map) => {
             const newMap = new Map(map);
@@ -110,11 +112,11 @@ export class RoomsService implements OnDestroy {
     // O EventSource não envia headers: em vez do JWT na URL (vaza em logs e histórico), um ticket
     // opaco de uso único, válido por 30 s, pedido com o Bearer pelo HttpClient (T-19).
     // A cada reconexão um ticket novo é pedido, porque o anterior já foi consumido.
-    this.http.post<{ ticket: string }>('/api/v1/rooms/events/ticket', {}).subscribe({
+    this.http.post<{ ticket: string }>(`${this.api}/rooms/events/ticket`, {}).subscribe({
       next: ({ ticket }) => {
         this.connecting = false;
         if (this.isIntentionalDisconnect) return;
-        this.openEventSource(`/api/v1/rooms/events?ticket=${encodeURIComponent(ticket)}`);
+        this.openEventSource(`${this.api}/rooms/events?ticket=${encodeURIComponent(ticket)}`);
       },
       error: () => {
         this.connecting = false;
