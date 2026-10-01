@@ -2,3 +2,11 @@
   padding: 2rem;
   text-align: center;
 }
+
+// Botão de sair (T-38): fixo no canto superior direito, acima do conteúdo das telas
+.logout-button {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 1000;
+}
