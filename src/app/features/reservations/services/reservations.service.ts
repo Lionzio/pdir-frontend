@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Room } from '../../rooms/models/room.model';
-import { toUtcIso8601 } from '../../../core/utils/date.utils';
+import { toIsoDate, toUtcIso8601 } from '../../../core/utils/date.utils';
 
 export interface ReservationCreateRequest {
   room_id: number;
@@ -39,10 +39,12 @@ export class ReservationsService {
       check_out: Date;
     },
   ): Observable<Reservation> {
+    // Datas sem hora (YYYY-MM-DD), como o contrato do backend; o CPF vai só com dígitos (T-32)
     const formattedPayload: ReservationCreateRequest = {
       ...payload,
-      check_in: toUtcIso8601(payload.check_in)!,
-      check_out: toUtcIso8601(payload.check_out)!,
+      guest_cpf: payload.guest_cpf.replace(/\D/g, ''),
+      check_in: toIsoDate(payload.check_in)!,
+      check_out: toIsoDate(payload.check_out)!,
     };
     return this.http.post<Reservation>(this.apiUrl, formattedPayload);
   }
