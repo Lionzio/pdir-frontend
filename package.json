@@ -60,5 +60,12 @@
     "src/**/*.scss": [
       "prettier --write"
     ]
+  },
+  "allowScripts": {
+    "puppeteer": true,
+    "esbuild": true,
+    "@parcel/watcher": false,
+    "lmdb": false,
+    "msgpackr-extract": false
   }
 }

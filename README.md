@@ -34,6 +34,9 @@ sincronização com Google Sheets e o Copilot de IA. A API fica em
    ```
 
    O `npm ci` também baixa o Chrome dos testes, via puppeteer, e instala os hooks do Husky.
+   No npm 11 ou mais novo, scripts de instalação só rodam se aprovados: o `package.json` já aprova
+   `puppeteer` e `esbuild` (campo `allowScripts`) e bloqueia três módulos nativos opcionais, que já
+   vêm com binários pré-compilados.
 
 2. **Subir o servidor de desenvolvimento:**
 
