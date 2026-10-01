@@ -5,13 +5,16 @@
   "scripts": {
     "prepare": "husky",
     "lint": "eslint \"src/**/*.{ts,html}\"",
-    "format": "prettier --write \"src/**/*.{ts,html,scss}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,html,scss}\"",
+    "format": "prettier --write \"src/**/*.{ts,html,scss}\" \"e2e/**/*.{ts,mjs,json,yml}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss}\" \"e2e/**/*.{ts,mjs,json,yml}\"",
     "start": "ng serve",
     "test": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox",
     "build": "ng build",
     "api:types": "npx --yes openapi-typescript@7.13.0 api/openapi.json -o src/app/core/api/schema.ts && prettier --write src/app/core/api/schema.ts",
-    "api:check": "node scripts/check-api-contract.mjs"
+    "api:check": "node scripts/check-api-contract.mjs",
+    "e2e": "playwright test -c e2e/playwright.config.ts",
+    "e2e:smoke": "playwright test -c e2e/playwright.config.ts --grep @smoke",
+    "e2e:types": "tsc --noEmit -p e2e/tsconfig.json"
   },
   "dependencies": {
     "@angular/animations": "^22.2.1",
@@ -34,7 +37,9 @@
     "@angular/build": "^22.2.0",
     "@angular/cli": "^22.2.0",
     "@angular/compiler-cli": "^22.2.1",
+    "@playwright/test": "^1.63.0",
     "@types/jasmine": "^6.0.0",
+    "@types/node": "^22.20.4",
     "angular-eslint": "^22.0.0",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",

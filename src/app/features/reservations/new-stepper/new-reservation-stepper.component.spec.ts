@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -16,6 +16,7 @@ describe('NewReservationStepperComponent (T-32)', () => {
   let fixture: ComponentFixture<NewReservationStepperComponent>;
   let component: NewReservationStepperComponent;
   let reservations: jasmine.SpyObj<ReservationsService>;
+  let guests: jasmine.SpyObj<GuestService>;
 
   const daysFromToday = (days: number) => {
     const today = new Date();
@@ -25,7 +26,7 @@ describe('NewReservationStepperComponent (T-32)', () => {
   beforeEach(async () => {
     reservations = jasmine.createSpyObj('ReservationsService', ['createReservation']);
     reservations.createReservation.and.returnValue(of({ id: 1 } as unknown as Reservation));
-    const guests = jasmine.createSpyObj('GuestService', ['checkGuestByCpf']);
+    guests = jasmine.createSpyObj('GuestService', ['checkGuestByCpf']);
     guests.checkGuestByCpf.and.returnValue(of(null));
 
     await TestBed.configureTestingModule({
@@ -59,6 +60,36 @@ describe('NewReservationStepperComponent (T-32)', () => {
     } as never);
     component.guestFormGroup.patchValue({ cpf: VALID_CPF, fullName: '' });
     expect(component.guestFormGroup.valid).toBeTrue();
+  });
+
+  // E2E FC4: o campo de nome aparece enquanto a busca do CPF não termina; quando o hóspede é
+  // encontrado e o campo some, o controle não pode ficar preso como inválido.
+  it('hóspede encontrado depois do campo de nome aparecer libera o "Próximo"', fakeAsync(() => {
+    guests.checkGuestByCpf.and.returnValue(
+      of({ id: 1, cpf: '52998224725', full_name: 'Hóspede Existente' }),
+    );
+    component.guestFormGroup.get('cpf')!.setValue(VALID_CPF);
+    fixture.detectChanges(); // antes do debounce: CPF válido e sem hóspede → campo de nome na tela
+    expect(fixture.nativeElement.querySelector('#guest-full-name')).not.toBeNull();
+
+    tick(300);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#guest-full-name')).toBeNull();
+    expect(component.guestFormGroup.valid).toBeTrue();
+    const next = Array.from<HTMLButtonElement>(
+      fixture.nativeElement.querySelectorAll('button'),
+    ).find((b) => b.textContent?.includes('Próximo'));
+    expect(next?.disabled).toBeFalse();
+  }));
+
+  it('nome curto de hóspede novo mostra o erro depois de tocado', () => {
+    component.guestFormGroup.patchValue({ cpf: VALID_CPF, fullName: 'Al' });
+    fixture.detectChanges();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('#guest-full-name');
+    input.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Informe o nome completo');
   });
 
   it('CPF com dígito verificador errado é inválido', () => {

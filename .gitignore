@@ -3,3 +3,7 @@
 /.angular
 /.vscode
 /coverage
+
+# E2E (Playwright)
+/test-results
+/playwright-report

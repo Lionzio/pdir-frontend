@@ -344,6 +344,7 @@ type FilterOption = MaturityStatus | 'ALL';
                           mat-icon-button
                           color="warn"
                           matTooltip="Estornar transação"
+                          aria-label="Estornar transação"
                           (click)="openRefundDialog(txn.id)"
                         >
                           <mat-icon>undo</mat-icon>

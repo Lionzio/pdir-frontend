@@ -21,7 +21,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { ErrorStateMatcher, MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -105,7 +105,15 @@ import { Router, RouterModule } from '@angular/router';
               <div class="form-row">
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Nome completo</mat-label>
-                  <input matInput formControlName="fullName" id="guest-full-name" required />
+                  <!-- Sem o atributo "required": a regra fica só no validador do grupo. O validador do
+                       atributo deixava o controle preso como inválido quando o campo sumia (E2E FC4). -->
+                  <input
+                    matInput
+                    formControlName="fullName"
+                    id="guest-full-name"
+                    aria-required="true"
+                    [errorStateMatcher]="nameErrorMatcher"
+                  />
                   @if (guestFormGroup.hasError('guestNameRequired')) {
                     <mat-error>Informe o nome completo (mínimo de 3 letras).</mat-error>
                   }
@@ -276,6 +284,12 @@ export class NewReservationStepperComponent implements OnInit, OnDestroy {
     if (checkIn && checkIn < this.today) return { checkInPast: true };
     if (checkIn && checkOut && checkOut <= checkIn) return { checkOutBeforeCheckIn: true };
     return null;
+  };
+
+  /** O erro do nome vem do grupo (guestNameRequired), não do controle. */
+  readonly nameErrorMatcher: ErrorStateMatcher = {
+    isErrorState: (control) =>
+      !!control?.touched && this.guestFormGroup.hasError('guestNameRequired'),
   };
 
   guestFormGroup = this.fb.nonNullable.group(

@@ -43,6 +43,9 @@ jobs:
       - name: Tipagem (tsc)
         run: npx tsc --noEmit -p tsconfig.json
 
+      - name: Tipagem dos testes E2E (tsc)
+        run: npm run e2e:types
+
   tests:
     name: Testes unitários (Karma, Chrome headless)
     runs-on: ubuntu-latest
