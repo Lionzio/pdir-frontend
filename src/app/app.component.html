@@ -1,3 +1,16 @@
+@if (auth.isAuthenticated()) {
+  <button
+    mat-mini-fab
+    class="logout-button"
+    id="btn-logout"
+    aria-label="Sair"
+    title="Sair"
+    [disabled]="loggingOut()"
+    (click)="logout()"
+  >
+    <mat-icon>logout</mat-icon>
+  </button>
+}
 <router-outlet></router-outlet>
 @if (auth.isAuthenticated()) {
   <app-chat-widget></app-chat-widget>

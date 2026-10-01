@@ -36,4 +36,20 @@ describe('AppComponent — Copilot só para usuário autenticado (T-31)', () => 
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-chat-widget')).not.toBeNull();
   });
+
+  it('botão de sair só aparece com sessão (T-38)', () => {
+    const anonymous = TestBed.createComponent(AppComponent);
+    anonymous.detectChanges();
+    expect(anonymous.nativeElement.querySelector('#btn-logout')).toBeNull();
+
+    TestBed.inject(AuthSignalService).updateSession('token', {
+      sub: 'gerente@exemplo.test',
+      user_id: 7,
+      role: 'GERENTE',
+      permissions: [],
+    });
+    const logged = TestBed.createComponent(AppComponent);
+    logged.detectChanges();
+    expect(logged.nativeElement.querySelector('#btn-logout')).not.toBeNull();
+  });
 });
