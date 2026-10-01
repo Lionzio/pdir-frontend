@@ -2501,7 +2501,7 @@
     },
     "/api/v1/rooms": {
       "get": {
-        "description": "Retorna a lista de quartos com categoria aninhada. Suporta filtros por status e andar com paginação.",
+        "description": "Retorna a lista de quartos com categoria aninhada. Suporta filtros por status e andar com paginação. Acessível para DONO, GERENTE, RECEPCIONISTA e CAMAREIRA (o mapa de quartos).",
         "operationId": "list_rooms_api_v1_rooms_get",
         "parameters": [
           {
@@ -2756,7 +2756,7 @@
     },
     "/api/v1/rooms/events": {
       "get": {
-        "description": "Abre um stream Server-Sent Events que emite eventos em tempo real sempre que o status de um quarto é alterado.\n\nO stream emite heartbeats a cada 15 segundos para manter a conexão ativa.\n\nCada evento sai com `id:`. Na reconexão, envie o último id recebido no header Last-Event-ID (o EventSource faz isso sozinho) ou em ?last_event_id= para receber o que foi perdido (últimos ~500 eventos).\n\nRequer autenticação: Authorization Header ou ?ticket=<ticket> emitido por POST /rooms/events/ticket (uso único, 30 s). O JWT na URL não é aceito.\n\nAcessível para DONO, GERENTE e RECEPCIONISTA.",
+        "description": "Abre um stream Server-Sent Events que emite eventos em tempo real sempre que o status de um quarto é alterado.\n\nO stream emite heartbeats a cada 15 segundos para manter a conexão ativa.\n\nCada evento sai com `id:`. Na reconexão, envie o último id recebido no header Last-Event-ID (o EventSource faz isso sozinho) ou em ?last_event_id= para receber o que foi perdido (últimos ~500 eventos).\n\nRequer autenticação: Authorization Header ou ?ticket=<ticket> emitido por POST /rooms/events/ticket (uso único, 30 s). O JWT na URL não é aceito.\n\nAcessível para DONO, GERENTE, RECEPCIONISTA e CAMAREIRA.",
         "operationId": "room_events_stream_api_v1_rooms_events_get",
         "parameters": [
           {
@@ -2849,7 +2849,7 @@
     },
     "/api/v1/rooms/events/ticket": {
       "post": {
-        "description": "Emite um ticket opaco de uso único, válido por 30 segundos, para abrir GET /rooms/events?ticket=... com o EventSource (que não envia headers). Evita o JWT na URL. Acessível para DONO, GERENTE e RECEPCIONISTA.",
+        "description": "Emite um ticket opaco de uso único, válido por 30 segundos, para abrir GET /rooms/events?ticket=... com o EventSource (que não envia headers). Evita o JWT na URL. Acessível para DONO, GERENTE, RECEPCIONISTA e CAMAREIRA.",
         "operationId": "issue_room_events_ticket_api_v1_rooms_events_ticket_post",
         "responses": {
           "200": {

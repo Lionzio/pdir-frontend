@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { signal } from '@angular/core';
 import { Room } from '../models/room.model';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { AuthSignalService } from '../../../core/services/auth-signal.service';
 
 describe('RoomMapComponent', () => {
   let component: RoomMapComponent;
@@ -114,5 +115,35 @@ describe('RoomMapComponent', () => {
   it('should disconnect on destroy', () => {
     component.ngOnDestroy();
     expect(mockRoomsService.disconnect).toHaveBeenCalled();
+  });
+
+  describe('atalhos do cabeçalho por papel (T-52)', () => {
+    const headerButtons = (role: string): string => {
+      TestBed.inject(AuthSignalService).updateSession('token', {
+        sub: `${role.toLowerCase()}@exemplo.test`,
+        user_id: 9,
+        role,
+        permissions: [],
+      });
+      fixture.detectChanges();
+      const buttons = fixture.nativeElement.querySelectorAll(
+        '.header-actions button',
+      ) as NodeListOf<HTMLElement>;
+      return Array.from(buttons, (b) => b.textContent ?? '').join(' | ');
+    };
+
+    afterEach(() => TestBed.inject(AuthSignalService).clearSession());
+
+    it('a CAMAREIRA não recebe atalhos para as reservas, que ela não pode abrir', () => {
+      const buttons = headerButtons('CAMAREIRA');
+      expect(buttons).not.toContain('Grade de Reservas');
+      expect(buttons).not.toContain('Nova Reserva');
+    });
+
+    it('a RECEPCIONISTA vê a grade e a nova reserva', () => {
+      const buttons = headerButtons('RECEPCIONISTA');
+      expect(buttons).toContain('Grade de Reservas');
+      expect(buttons).toContain('Nova Reserva');
+    });
   });
 });

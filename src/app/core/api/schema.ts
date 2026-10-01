@@ -416,7 +416,7 @@ export interface paths {
     };
     /**
      * Listar quartos
-     * @description Retorna a lista de quartos com categoria aninhada. Suporta filtros por status e andar com paginação.
+     * @description Retorna a lista de quartos com categoria aninhada. Suporta filtros por status e andar com paginação. Acessível para DONO, GERENTE, RECEPCIONISTA e CAMAREIRA (o mapa de quartos).
      */
     get: operations['list_rooms_api_v1_rooms_get'];
     put?: never;
@@ -485,7 +485,7 @@ export interface paths {
      *
      *     Requer autenticação: Authorization Header ou ?ticket=<ticket> emitido por POST /rooms/events/ticket (uso único, 30 s). O JWT na URL não é aceito.
      *
-     *     Acessível para DONO, GERENTE e RECEPCIONISTA.
+     *     Acessível para DONO, GERENTE, RECEPCIONISTA e CAMAREIRA.
      */
     get: operations['room_events_stream_api_v1_rooms_events_get'];
     put?: never;
@@ -507,7 +507,7 @@ export interface paths {
     put?: never;
     /**
      * Emitir ticket para o stream SSE
-     * @description Emite um ticket opaco de uso único, válido por 30 segundos, para abrir GET /rooms/events?ticket=... com o EventSource (que não envia headers). Evita o JWT na URL. Acessível para DONO, GERENTE e RECEPCIONISTA.
+     * @description Emite um ticket opaco de uso único, válido por 30 segundos, para abrir GET /rooms/events?ticket=... com o EventSource (que não envia headers). Evita o JWT na URL. Acessível para DONO, GERENTE, RECEPCIONISTA e CAMAREIRA.
      */
     post: operations['issue_room_events_ticket_api_v1_rooms_events_ticket_post'];
     delete?: never;
