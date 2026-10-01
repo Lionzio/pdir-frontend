@@ -636,7 +636,7 @@ export interface components {
     AccountCloseRequest: {
       /**
        * Payment Amount
-       * @description Valor pago pelo hóspede no ato do checkout (pode ser 0 se já quitado; até 99999999.99)
+       * @description Valor pago pelo hóspede no ato do checkout (pode ser 0; até 2 casas decimais e até 99999999.99)
        * @default 0.00
        */
       payment_amount: number | string;
@@ -1139,13 +1139,13 @@ export interface components {
     TransactionCreateRequest: {
       /**
        * Amount
-       * @description Valor da transação em R$ (precisão centesimal, até 99999999.99)
+       * @description Valor da transação em R$ (até 2 casas decimais e até 99999999.99)
        * @example 45.50
        */
       amount: number | string;
       /**
        * Category
-       * @description Categoria: DIARIA, FRIGOBAR, RESTAURANTE, LAVANDERIA, PAGAMENTO_ANTECIPADO, PAGAMENTO_CHECKOUT, OUTROS
+       * @description Categoria: DIARIA, FRIGOBAR, RESTAURANTE, LAVANDERIA, PAGAMENTO_ANTECIPADO, OUTROS. PAGAMENTO_CHECKOUT é lançado só pelo fechamento da conta.
        * @example FRIGOBAR
        */
       category: string;

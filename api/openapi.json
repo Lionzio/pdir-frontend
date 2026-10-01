@@ -12,12 +12,12 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$",
                 "type": "string"
               }
             ],
             "default": "0.00",
-            "description": "Valor pago pelo hóspede no ato do checkout (pode ser 0 se já quitado; até 99999999.99)",
+            "description": "Valor pago pelo hóspede no ato do checkout (pode ser 0; até 2 casas decimais e até 99999999.99)",
             "title": "Payment Amount"
           },
           "payment_description": {
@@ -1017,18 +1017,18 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$",
                 "type": "string"
               }
             ],
-            "description": "Valor da transação em R$ (precisão centesimal, até 99999999.99)",
+            "description": "Valor da transação em R$ (até 2 casas decimais e até 99999999.99)",
             "examples": [
               "45.50"
             ],
             "title": "Amount"
           },
           "category": {
-            "description": "Categoria: DIARIA, FRIGOBAR, RESTAURANTE, LAVANDERIA, PAGAMENTO_ANTECIPADO, PAGAMENTO_CHECKOUT, OUTROS",
+            "description": "Categoria: DIARIA, FRIGOBAR, RESTAURANTE, LAVANDERIA, PAGAMENTO_ANTECIPADO, OUTROS. PAGAMENTO_CHECKOUT é lançado só pelo fechamento da conta.",
             "examples": [
               "FRIGOBAR"
             ],
