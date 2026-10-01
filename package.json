@@ -10,7 +10,8 @@
     "start": "ng serve",
     "test": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox",
     "build": "ng build",
-    "api:types": "npx --yes openapi-typescript@7.13.0 api/openapi.json -o src/app/core/api/schema.ts && prettier --write src/app/core/api/schema.ts"
+    "api:types": "npx --yes openapi-typescript@7.13.0 api/openapi.json -o src/app/core/api/schema.ts && prettier --write src/app/core/api/schema.ts",
+    "api:check": "node scripts/check-api-contract.mjs"
   },
   "dependencies": {
     "@angular/animations": "^22.0.5",
