@@ -33,7 +33,12 @@ module.exports = function (config) {
       reporters: [
         { type: 'html' },
         { type: 'text-summary' }
-      ]
+      ],
+      // Gate de cobertura (T-46): com --code-coverage (como no CI), abaixo disto o `npm test` falha.
+      // Limites um pouco abaixo do medido (81% linhas, 80% statements, 75% funções, 69% branches).
+      check: {
+        global: { statements: 75, lines: 75, functions: 70, branches: 65 }
+      }
     },
     reporters: ['progress', 'kjhtml'],
     port: 9876,
