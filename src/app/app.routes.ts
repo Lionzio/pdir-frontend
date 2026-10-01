@@ -49,6 +49,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin/approvals',
+    canActivate: [authGuard, roleGuard(MANAGEMENT)],
+    loadComponent: () =>
+      import('./features/admin/approvals/approvals-page.component').then(
+        (m) => m.ApprovalsPageComponent,
+      ),
+  },
+  {
     path: '',
     pathMatch: 'full',
     redirectTo: 'admin/rooms',
