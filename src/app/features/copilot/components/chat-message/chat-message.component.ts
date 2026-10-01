@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SecurityContext } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -12,11 +12,17 @@ import DOMPurify from 'dompurify';
   standalone: true,
   imports: [CommonModule, MatIconModule, MatProgressSpinnerModule],
   template: `
-    <div class="message-container" [ngClass]="{'user': message.role === 'user', 'ai': message.role === 'assistant'}">
-      
+    <div
+      class="message-container"
+      [ngClass]="{ user: message.role === 'user', ai: message.role === 'assistant' }"
+    >
       <div class="avatar">
-        @if (message.role === 'user') { <mat-icon>person</mat-icon> }
-        @if (message.role === 'assistant') { <mat-icon>auto_awesome</mat-icon> }
+        @if (message.role === 'user') {
+          <mat-icon>person</mat-icon>
+        }
+        @if (message.role === 'assistant') {
+          <mat-icon>auto_awesome</mat-icon>
+        }
       </div>
 
       <div class="content-box">
@@ -25,8 +31,12 @@ import DOMPurify from 'dompurify';
           <div class="tool-badges">
             @for (tc of message.toolCalls; track tc.name) {
               <div class="tool-badge" [ngClass]="tc.status">
-                @if (tc.status === 'running') { <mat-icon class="spin">sync</mat-icon> }
-                @if (tc.status === 'completed') { <mat-icon>check_circle</mat-icon> }
+                @if (tc.status === 'running') {
+                  <mat-icon class="spin">sync</mat-icon>
+                }
+                @if (tc.status === 'completed') {
+                  <mat-icon>check_circle</mat-icon>
+                }
                 <span>Usando ferramenta: {{ tc.name }}</span>
               </div>
             }
@@ -35,7 +45,7 @@ import DOMPurify from 'dompurify';
 
         <!-- Rendered Markdown Content -->
         <div class="markdown-body" [innerHTML]="safeHtml"></div>
-        
+
         @if (message.isStreaming && !message.content) {
           <div class="typing-indicator">
             <div class="dot"></div>
@@ -176,7 +186,7 @@ export class ChatMessageComponent implements OnChanges {
   @Input() message!: ChatMessage;
   safeHtml: SafeHtml = '';
 
-  constructor(private sanitizer: DomSanitizer) {}
+  private sanitizer = inject(DomSanitizer);
 
   async ngOnChanges() {
     if (this.message && this.message.content) {

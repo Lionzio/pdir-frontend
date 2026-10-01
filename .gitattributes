@@ -1,0 +1,14 @@
+# Quebras de linha LF em qualquer sistema: o Prettier (endOfLine: lf) e o CI (Linux) esperam LF.
+# Sem isto, clones no Windows com core.autocrlf=true geram milhares de erros de lint (T-10).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pdf binary
