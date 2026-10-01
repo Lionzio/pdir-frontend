@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, inject } from '@angular/core';
+import { Component, Input, OnChanges, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -44,7 +44,7 @@ import DOMPurify from 'dompurify';
         }
 
         <!-- Rendered Markdown Content -->
-        <div class="markdown-body" [innerHTML]="safeHtml"></div>
+        <div class="markdown-body" [innerHTML]="safeHtml()"></div>
 
         @if (message.isStreaming && !message.content) {
           <div class="typing-indicator">
@@ -184,21 +184,17 @@ import DOMPurify from 'dompurify';
 })
 export class ChatMessageComponent implements OnChanges {
   @Input() message!: ChatMessage;
-  safeHtml: SafeHtml = '';
+  // Signal: a view é atualizada mesmo quando o conteúdo muda fora de um evento do template (streaming).
+  // Antes era um campo comum preenchido depois de um await, e as bolhas apareciam vazias (achado do E2E, T-45).
+  readonly safeHtml = signal<SafeHtml>('');
 
   private sanitizer = inject(DomSanitizer);
 
-  async ngOnChanges() {
-    if (this.message && this.message.content) {
-      // 1. Convert Markdown to HTML
-      const rawHtml = await marked.parse(this.message.content, { async: true });
-
-      // 2. Sanitize HTML using DOMPurify
-      const purifiedHtml = DOMPurify.sanitize(rawHtml);
-
-      // 3. Bypass Angular Trust ONLY after strict DOMPurify filtering
-      // (Angular's sanitize isn't perfect for raw HTML injection, DOMPurify is industry standard)
-      this.safeHtml = this.sanitizer.bypassSecurityTrustHtml(purifiedHtml);
-    }
+  ngOnChanges(): void {
+    const content = this.message?.content ?? '';
+    // 1. Markdown → HTML, síncrono: o texto aparece no mesmo ciclo de detecção de mudanças
+    const rawHtml = marked.parse(content, { async: false });
+    // 2. Sanitiza com DOMPurify e só então confia no HTML (o sanitize do Angular não é suficiente para HTML bruto)
+    this.safeHtml.set(this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(rawHtml)));
   }
 }

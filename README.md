@@ -53,15 +53,16 @@ sincronização com Google Sheets e o Copilot de IA. A API fica em
 
 ## Scripts
 
-| Comando                                   | O que faz                                                   |
-| ----------------------------------------- | ----------------------------------------------------------- |
-| `npm start`                               | servidor de desenvolvimento com proxy para a API            |
-| `npm test`                                | testes unitários (Karma, Chrome headless, execução única)   |
-| `npm test -- --code-coverage`             | testes + relatório de cobertura em `coverage/`              |
-| `npm run lint`                            | ESLint em `src/**/*.{ts,html}`                              |
-| `npm run format:check` / `npm run format` | confere / aplica o Prettier                                 |
-| `npm run build`                           | build de produção em `dist/pdir-frontend`                   |
-| `npm run api:types`                       | regenera `src/app/core/api/schema.ts` de `api/openapi.json` |
+| Comando                                   | O que faz                                                             |
+| ----------------------------------------- | --------------------------------------------------------------------- |
+| `npm start`                               | servidor de desenvolvimento com proxy para a API                      |
+| `npm test`                                | testes unitários (Karma, Chrome headless, execução única)             |
+| `npm test -- --code-coverage`             | testes + relatório de cobertura em `coverage/`                        |
+| `npm run lint`                            | ESLint em `src/**/*.{ts,html}`                                        |
+| `npm run format:check` / `npm run format` | confere / aplica o Prettier                                           |
+| `npm run build`                           | build de produção em `dist/pdir-frontend`                             |
+| `npm run api:types`                       | regenera `src/app/core/api/schema.ts` de `api/openapi.json`           |
+| `npm run e2e` / `npm run e2e:smoke`       | testes E2E com Playwright (veja [Testes E2E](#testes-e2e-playwright)) |
 
 ### Tipos do contrato da API
 
@@ -101,6 +102,47 @@ Para publicar com a API em outro host, troque `apiBaseUrl` em `environment.ts` p
 dois devem ser do **mesmo site** (ex.: `app.hotel.example` e `api.hotel.example`), porque o cookie do
 refresh token é `SameSite=Strict`.
 
+## Testes E2E (Playwright)
+
+A pasta `e2e/` (T-45) cobre os fluxos críticos com o frontend e o backend reais, contra um Postgres e um Redis
+descartáveis. Todos os dados são fictícios.
+
+| Fluxo | Spec                                   | O que prova                                                                                                   |
+| ----- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| FC1   | `fc01-fc02-acesso.spec.ts`             | login do DONO; rota protegida sem sessão vai para `/login`; credencial errada mostra erro                     |
+| FC2   | `fc01-fc02-acesso.spec.ts`             | autocadastro → login negado ("sob análise") → aprovação pela tela → login aceito                              |
+| FC3   | `fc03-mapa-sse.spec.ts`                | os 27 quartos semeados; mudança de status chega a outra aba pelo SSE                                          |
+| FC4   | `fc04-fc05-reservas.spec.ts`           | nova reserva com hóspede já cadastrado (busca por CPF) aparece na timeline                                    |
+| FC5   | `fc04-fc05-reservas.spec.ts`           | overbooking mostra o erro e não cria reserva                                                                  |
+| FC6   | `fc06-fc07-ciclo-e-financeiro.spec.ts` | check-in e check-out pela timeline mudam o quarto para Ocupado e depois Limpeza                               |
+| FC7   | `fc06-fc07-ciclo-e-financeiro.spec.ts` | conta: débito, pagamento, fechamento bloqueado com saldo, quitação, estorno visível ao DONO; recepção barrada |
+| FC8   | `fc08-fc09-sync-e-copilot.spec.ts`     | DONO força a sincronização; recepção barrada na tela                                                          |
+| FC9   | `fc08-fc09-sync-e-copilot.spec.ts`     | Copilot sem chave de IA avisa; resposta em streaming é renderizada                                            |
+| FC10  | `fc10-sessao.spec.ts`                  | access token expirado é renovado sem sair da tela; sem refresh token, volta ao login                          |
+| smoke | `smoke.spec.ts` (+ FC1 `@smoke`)       | login → nova reserva → logout                                                                                 |
+
+Pré-requisitos: Docker, o `pdir-backend` clonado ao lado (`../pdir-backend`) com o `.venv` criado (`uv sync`) e o
+Chromium do Playwright (`npx playwright install chromium`).
+
+```bash
+npm run e2e        # suíte completa (~3 min; o FC10 espera o token de 1 minuto expirar)
+npm run e2e:smoke  # só os cenários @smoke (~30 s)
+```
+
+O `e2e/scripts/start-backend.mjs` sobe o Postgres (porta 55433) e o Redis (56380) pelo
+`e2e/docker-compose.e2e.yml`, recria o banco `pdir_e2e`, aplica as migrations e sobe a API na porta 8001 com um
+admin de teste, chaves JWT efêmeras e access token de 1 minuto. O `ng serve` sobe na porta 4300 com proxy para essa
+API. Nada usa as portas do ambiente de desenvolvimento (4200, 8000, 5432, 6379).
+
+Variáveis úteis: `PDIR_BACKEND_DIR` (backend em outro caminho), `PDIR_PYTHON` (outro Python) e `E2E_DEBUG=1` (log
+da API na saída). Fora do CI, servidores já no ar nas portas 8001 e 4300 são reaproveitados. Para desligar o banco
+e o Redis: `docker compose -f e2e/docker-compose.e2e.yml down`.
+
+No CI, o workflow [**E2E**](.github/workflows/e2e.yml) roda o smoke em todo PR e push na `develop`, e a suíte
+completa toda noite e sob demanda (Actions → E2E → Run workflow). Para clonar o backend privado ele usa o secret
+`PDIR_BACKEND_READ_TOKEN`; sem o secret, o job é pulado com um aviso. Em falha, o relatório do Playwright (com trace
+e screenshots) fica nos artefatos do run.
+
 ## CI
 
 O [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em todo push para `main`/`develop` e em todo PR, com Node 22.
@@ -113,6 +155,8 @@ Cada job é um **gate**: se falhar, o PR não deve ser mergeado (T-46).
 | Build de produção                         | o build falha (o aviso de orçamento do bundle não bloqueia)                                                                  |
 | Dependências (npm audit)                  | vulnerabilidade **alta ou crítica** em dependência de produção; o audit das dependências de desenvolvimento é só informativo |
 | Segredos no histórico (gitleaks)          | segredo no histórico do git                                                                                                  |
+
+O workflow [**E2E**](.github/workflows/e2e.yml) roda o smoke dos fluxos críticos em todo PR (veja [Testes E2E](#testes-e2e-playwright)).
 
 Para exigir esses checks no merge (proteção de branch), veja `tasks/T-11/aplicar-protecao.ps1`.
 
